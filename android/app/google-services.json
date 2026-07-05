@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "701994356841",
+    "project_id": "superthai-72184",
+    "storage_bucket": "superthai-72184.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701994356841:android:29343dea2c8a1656aed2f8",
+        "android_client_info": {
+          "package_name": "com.krisada.superthai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701994356841-7i61i9bfgqv1c27mn0gqs5iliomg1sno.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyJhgeLY5jFWYF-PnJ0LXoixdgARf1-R8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701994356841-7i61i9bfgqv1c27mn0gqs5iliomg1sno.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "701994356841-gvcqp264givdapq3q47q2qkit9u8etkv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.krisada.superthai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

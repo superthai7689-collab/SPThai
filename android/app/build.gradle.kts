@@ -47,7 +47,6 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             
-            // เพิ่มการลดขนาดโค้ดและทรัพยากร
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

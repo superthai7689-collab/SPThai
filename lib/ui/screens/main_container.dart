@@ -21,7 +21,6 @@ class MainContainerState extends State<MainContainer> {
   int _selectedIndex = 0;
   LessonPlan? _editingPlan;
 
-  // Track loaded pages to avoid heavy initialization
   final List<bool> _loadedPages = [true, false, false, false];
 
   void switchToCreate([LessonPlan? plan]) {
@@ -42,13 +41,19 @@ class MainContainerState extends State<MainContainer> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: AuthService.instance,
+      listenable: authService,
       builder: (context, _) {
-        final isAdmin = AuthService.instance.isAdmin;
+        final isAdmin = authService.isAdmin;
+
+        int effectiveIndex = _selectedIndex;
+        int maxIndex = isAdmin ? 3 : 2;
+        if (effectiveIndex > maxIndex) {
+          effectiveIndex = 0;
+        }
 
         return Scaffold(
           body: IndexedStack(
-            index: _selectedIndex,
+            index: effectiveIndex,
             children: [
               const LessonSelectionScreen(),
               _buildLazyPage(1, () => const FavoritesScreen()),
@@ -67,20 +72,21 @@ class MainContainerState extends State<MainContainer> {
               ],
             ),
             child: NavigationBar(
-              selectedIndex: _selectedIndex,
+              selectedIndex: effectiveIndex,
               onDestinationSelected: (index) {
                 if (index == 3 && !isAdmin) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text(
-                        "Only Admins can access the Create section. 🛡️",
-                      ),
+                      content: Text("Only Admins can access the Create section. 🛡️"),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                   return;
                 }
                 setState(() {
+                  if (_selectedIndex == 3 && index != 3) {
+                    _editingPlan = null;
+                  }
                   _selectedIndex = index;
                   _loadedPages[index] = true;
                 });
@@ -89,24 +95,24 @@ class MainContainerState extends State<MainContainer> {
               indicatorColor: Colors.transparent,
               overlayColor: WidgetStateProperty.all(Colors.transparent),
               destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.menu_book_outlined),
+                NavigationDestination(
+                  icon: const Icon(Icons.menu_book_outlined),
                   selectedIcon: Icon(
                     Icons.menu_book_rounded,
                     color: AppTheme.primaryColor,
                   ),
                   label: 'Lesson',
                 ),
-                const NavigationDestination(
-                  icon: Icon(Icons.translate_rounded),
+                NavigationDestination(
+                  icon: const Icon(Icons.translate_rounded),
                   selectedIcon: Icon(
                     Icons.translate_rounded,
                     color: AppTheme.primaryColor,
                   ),
                   label: 'Vocabulary',
                 ),
-                const NavigationDestination(
-                  icon: Icon(Icons.explore_outlined),
+                NavigationDestination(
+                  icon: const Icon(Icons.explore_outlined),
                   selectedIcon: Icon(
                     Icons.explore_rounded,
                     color: AppTheme.primaryColor,
@@ -114,8 +120,8 @@ class MainContainerState extends State<MainContainer> {
                   label: 'Discover',
                 ),
                 if (isAdmin)
-                  const NavigationDestination(
-                    icon: Icon(Icons.add_circle_outline_rounded),
+                  NavigationDestination(
+                    icon: const Icon(Icons.add_circle_outline_rounded),
                     selectedIcon: Icon(
                       Icons.add_circle_rounded,
                       color: AppTheme.primaryColor,

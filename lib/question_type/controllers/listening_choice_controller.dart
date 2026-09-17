@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/data_service.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class ListeningChoiceController extends ChangeNotifier {
   final WordEntry word;
@@ -36,11 +37,8 @@ class ListeningChoiceController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // If initialChoices are provided, use them. Otherwise, we might need to generate some?
-    // For now, assume they are provided via LessonStepData.
     _choices = List.from(initialChoices);
     
-    // Ensure the correct answer is in the choices
     final targetAnswer = correctAnswer ?? word.thai;
     if (!_choices.contains(targetAnswer)) {
       if (_choices.length < 4) {
@@ -75,11 +73,20 @@ class ListeningChoiceController extends ChangeNotifier {
     if (_answered) return;
     _selectedAnswer = choice;
     _answered = true;
+
+    if (answerCorrect) {
+      SoundService.instance.playCorrect();
+      _tts.speak(word.thai);
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 
   bool isCorrect(String choice) {
-    return choice == (correctAnswer ?? word.thai);
+    final target = (correctAnswer ?? word.thai).trim().toLowerCase();
+    return choice.trim().toLowerCase() == target;
   }
 
   bool get answerCorrect {
@@ -92,7 +99,5 @@ class ListeningChoiceController extends ChangeNotifier {
     required List<String> newChoices,
     String? newAnswer,
   }) {
-    // This is useful for edit mode sync
-    // In quiz mode, we probably don't want to reshuffle if something minor changes
   }
 }

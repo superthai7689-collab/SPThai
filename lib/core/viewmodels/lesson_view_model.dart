@@ -8,10 +8,14 @@ enum LessonType {
   multipleChoice,
   listening,
   speaking,
-  fillBlank,
+  completeSentense,
+  meaning,
   sentenceOrder,
   vowelFill,
   listeningChoice,
+  info,
+  conversation,
+  sentenceExample,
 }
 
 class LessonStep {
@@ -34,12 +38,14 @@ class LessonViewModel extends ChangeNotifier {
   final String? lessonId;
   final String category;
 
+  LessonPlan? _currentPlan;
   String? _resolvedId;
   List<LessonStep> _steps = [];
   int _currentIndex = 0;
   bool _isLoading = true;
   int _sessionCorrectCount = 0;
   final List<LessonStep> _failedSteps = [];
+  bool _hasAutoMigrated = false;
 
   List<LessonStep> get steps => _steps;
   int get currentIndex => _currentIndex;
@@ -48,6 +54,8 @@ class LessonViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   int get sessionCorrectCount => _sessionCorrectCount;
   List<LessonStep> get failedSteps => _failedSteps;
+
+  LessonPlan? get currentPlan => _currentPlan; // [TEMPORARY] for admin migration
 
   LessonViewModel({this.lessonId, required this.category}) {
     _generateSteps();
@@ -63,13 +71,15 @@ class LessonViewModel extends ChangeNotifier {
     plan ??= await DataService.instance.getLessonPlanByCategory(category);
 
     if (plan != null) {
+      _currentPlan = plan;
       _resolvedId = plan.id;
       for (int i = 0; i < plan.steps.length; i++) {
         var stepData = plan.steps[i];
         if (stepData.thai.isNotEmpty ||
             stepData.english.isNotEmpty ||
             stepData.question.isNotEmpty ||
-            stepData.answer.isNotEmpty) {
+            stepData.answer.isNotEmpty ||
+            (stepData.conversation != null && stepData.conversation!.isNotEmpty)) {
           _steps.add(
             LessonStep(
               word: stepData.toWordEntry(),
@@ -100,9 +110,16 @@ class LessonViewModel extends ChangeNotifier {
       case "Speaking":
       case "speaking":
         return LessonType.speaking;
+      case "Complete Sentense":
+      case "completeSentense":
       case "Fill Blank":
       case "fillBlank":
-        return LessonType.fillBlank;
+        return LessonType.completeSentense;
+      case "Meaning":
+      case "meaning":
+      case "English Meaning":
+      case "englishMeaning":
+        return LessonType.meaning;
       case "Sentence Order":
       case "sentenceOrder":
         return LessonType.sentenceOrder;
@@ -112,6 +129,17 @@ class LessonViewModel extends ChangeNotifier {
       case "Listening Choice":
       case "listeningChoice":
         return LessonType.listeningChoice;
+      case "Info":
+      case "info":
+      case "Info Note":
+      case "Culture Note":
+        return LessonType.info;
+      case "Conversation":
+      case "conversation":
+        return LessonType.conversation;
+      case "Sentence Example":
+      case "sentenceExample":
+        return LessonType.sentenceExample;
       default:
         return LessonType.flashcard;
     }
@@ -120,6 +148,15 @@ class LessonViewModel extends ChangeNotifier {
   void nextStep(bool wasCorrect) {
     if (_currentIndex < _steps.length) {
       final currentStep = _steps[_currentIndex];
+
+      // [TEMPORARY] Auto-Migration logic
+      if (!_hasAutoMigrated &&
+          _currentPlan != null &&
+          (currentStep.rawData?.wasConverted ?? false)) {
+        _hasAutoMigrated = true;
+        DataService.instance.addLessonPlan(_currentPlan!);
+      }
+
       if (wasCorrect) {
         _sessionCorrectCount++;
         final idToSave = lessonId ?? _resolvedId;
@@ -134,6 +171,20 @@ class LessonViewModel extends ChangeNotifier {
       }
 
       _currentIndex++;
+      notifyListeners();
+    }
+  }
+
+  void previousStep() {
+    if (_currentIndex > 0) {
+      _currentIndex--;
+      notifyListeners();
+    }
+  }
+
+  void jumpToStep(int index) {
+    if (index >= 0 && index < _steps.length) {
+      _currentIndex = index;
       notifyListeners();
     }
   }

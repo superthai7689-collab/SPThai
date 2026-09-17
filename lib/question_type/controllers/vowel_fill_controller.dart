@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:superthai/core/models/models.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class VowelFillController extends ChangeNotifier {
   WordEntry word;
@@ -44,7 +45,14 @@ class VowelFillController extends ChangeNotifier {
     if (_answered) return;
     _selectedAnswer = choice;
     _answered = true;
-    _isCorrect = choice == correctAnswer;
+    _isCorrect = choice.trim().toLowerCase() == correctAnswer.trim().toLowerCase();
+
+    if (_isCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 

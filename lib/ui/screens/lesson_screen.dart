@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/viewmodels/lesson_view_model.dart';
-import 'package:superthai/question_type/pages/listening_page.dart';
-import 'package:superthai/question_type/pages/listening_choice_page.dart';
-import 'package:superthai/question_type/pages/speaking_page.dart';
-import 'package:superthai/question_type/pages/fill_blank_page.dart';
-import 'package:superthai/question_type/pages/four_choice_page.dart';
-import 'package:superthai/question_type/pages/sentence_order_page.dart';
-import 'package:superthai/question_type/pages/vowel_fill_page.dart';
-import 'package:superthai/question_type/pages/flashcard_page.dart';
+import 'package:superthai/question_type/pages/take/listening_take_page.dart';
+import 'package:superthai/question_type/pages/take/listening_choice_take_page.dart';
+import 'package:superthai/question_type/pages/take/speaking_take_page.dart';
+import 'package:superthai/question_type/pages/take/complete_sentense_take_page.dart';
+import 'package:superthai/question_type/pages/take/meaning_take_page.dart';
+import 'package:superthai/question_type/pages/take/four_choice_take_page.dart';
+import 'package:superthai/question_type/pages/take/sentence_order_take_page.dart';
+import 'package:superthai/question_type/pages/take/vowel_fill_take_page.dart';
+import 'package:superthai/question_type/pages/take/flashcard_take_page.dart';
+import 'package:superthai/question_type/pages/take/info_take_page.dart';
+import 'package:superthai/question_type/pages/take/conversation_take_page.dart';
+import 'package:superthai/question_type/pages/take/sentence_example_take_page.dart';
 import 'package:superthai/ui/widgets/lesson_completion_widget.dart';
+import 'package:superthai/ui/widgets/shared_widgets.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
 
 class LessonScreen extends StatefulWidget {
@@ -23,7 +28,7 @@ class LessonScreen extends StatefulWidget {
 
 class _LessonScreenState extends State<LessonScreen> {
   late final LessonViewModel _viewModel;
-  bool _isNavigating = false;
+  late final PageController _pageController;
 
   @override
   void initState() {
@@ -32,15 +37,21 @@ class _LessonScreenState extends State<LessonScreen> {
       category: widget.category,
       lessonId: widget.lessonId,
     );
+    _pageController = PageController(initialPage: _viewModel.currentIndex);
     _viewModel.addListener(_onViewModelUpdate);
   }
 
   void _onViewModelUpdate() {
-    if (!_viewModel.isLoading &&
-        !_isNavigating &&
-        !_viewModel.isCompleted &&
-        _viewModel.steps.isNotEmpty) {
-      _openCurrentStep();
+    if (_viewModel.isLoading) return;
+
+    if (_pageController.hasClients) {
+      if (_pageController.page?.round() != _viewModel.currentIndex) {
+        _pageController.animateToPage(
+          _viewModel.currentIndex,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
@@ -48,97 +59,87 @@ class _LessonScreenState extends State<LessonScreen> {
   void dispose() {
     _viewModel.removeListener(_onViewModelUpdate);
     _viewModel.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _openCurrentStep() async {
-    if (_viewModel.isCompleted || _isNavigating || _viewModel.isLoading) return;
-
-    _isNavigating = true;
-    final step = _viewModel.steps[_viewModel.currentIndex];
-    final Widget page = _mapStepToPage(step);
-
-    final dynamic result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => page));
-
-    if (!mounted) return;
-
-    _isNavigating = false;
-
-    if (result == null) {
-      Navigator.of(context).pop();
-      return;
-    }
-
-    _viewModel.nextStep(result == true);
-  }
-
-  Widget _mapStepToPage(LessonStep step) {
-    // Pass current index and total steps to ALL pages
+  Widget _mapStepToPage(LessonStep step, bool isActive) {
     final int index = _viewModel.currentIndex;
     final int total = _viewModel.steps.length;
 
     switch (step.type) {
       case LessonType.flashcard:
-        return FlashcardPage(
+        return FlashcardTakePage(
           word: step.word!,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
+          isActive: isActive,
         );
       case LessonType.multipleChoice:
-        return FourChoicePage(
+        return FourChoiceTakePage(
           word: step.word!,
           choices: step.rawData?.choices ?? [],
-          correctAnswer: step.rawData?.answer,
+          correctAnswer: step.rawData?.answer ?? "",
           category: widget.category,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
         );
       case LessonType.listening:
-        return ListeningPage(
+        return ListeningTakePage(
           word: step.word!,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
+          isActive: isActive,
         );
       case LessonType.listeningChoice:
-        return ListeningChoicePage(
+        return ListeningChoiceTakePage(
           word: step.word!,
           choices: step.rawData?.choices ?? [],
-          correctAnswer: step.rawData?.answer,
+          correctAnswer: step.rawData?.answer ?? "",
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
+          isActive: isActive,
         );
       case LessonType.speaking:
-        return SpeakingPage(
+        return SpeakingTakePage(
           word: step.word!,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
+          isActive: isActive,
         );
-      case LessonType.fillBlank:
-        return FillBlankPage(
+      case LessonType.completeSentense:
+        return CompleteSentenseTakePage(
+          sentence: step.sentence!,
+          showAppBar: false,
+          currentIndex: index,
+          totalSteps: total,
+          plan: _viewModel.currentPlan, // [TEMPORARY] for migration
+          stepIndex: step.originalIndex, // [TEMPORARY] for migration
+        );
+      case LessonType.meaning:
+        return MeaningTakePage(
           sentence: step.sentence!,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
         );
       case LessonType.sentenceOrder:
-        return SentenceOrderPage(
+        return SentenceOrderTakePage(
           word: step.word!,
           choices: step.rawData?.choices ?? [],
-          correctAnswer: step.rawData?.answer,
+          correctAnswer: step.rawData?.answer ?? "",
           category: widget.category,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
         );
       case LessonType.vowelFill:
-        return VowelFillPage(
+        return VowelFillTakePage(
           word: step.word!,
           question: step.rawData?.question ?? "",
           answer: step.rawData?.answer ?? "",
@@ -146,8 +147,37 @@ class _LessonScreenState extends State<LessonScreen> {
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
+          isActive: isActive,
+        );
+      case LessonType.info:
+        return InfoTakePage(
+          title: step.rawData?.question ?? "",
+          content: step.rawData?.answer ?? "",
+          imageUrl: step.rawData?.imageUrl ?? "",
+          showAppBar: false,
+          currentIndex: index,
+          totalSteps: total,
+        );
+      case LessonType.conversation:
+        return ConversationTakePage(
+          messages: step.rawData?.conversation ?? [],
+          currentIndex: index,
+          totalSteps: total,
+          isActive: isActive,
+        );
+      case LessonType.sentenceExample:
+        return SentenceExampleTakePage(
+          sentences: step.rawData?.conversation ?? [],
+          showAppBar: false,
+          currentIndex: index,
+          totalSteps: total,
+          isActive: isActive,
         );
     }
+  }
+
+  void _onPageChanged(int index) {
+    _viewModel.jumpToStep(index);
   }
 
   @override
@@ -155,12 +185,115 @@ class _LessonScreenState extends State<LessonScreen> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
+        if (_viewModel.isLoading) return Scaffold(body: _buildLoadingScreen());
+        if (_viewModel.isCompleted) return Scaffold(body: _buildCompletionScreen());
+        if (_viewModel.steps.isEmpty) return Scaffold(body: _buildLoadingScreen());
+
         return Scaffold(
-          body: _viewModel.isCompleted
-              ? _buildCompletionScreen()
-              : _buildLoadingScreen(),
+          body: NotificationListener<StepResultNotification>(
+            onNotification: (StepResultNotification notification) {
+              _viewModel.nextStep(notification.result);
+              return true;
+            },
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _viewModel.steps.length,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: _onPageChanged,
+              itemBuilder: (context, index) {
+                final step = _viewModel.steps[index];
+                return _mapStepToPage(step, index == _viewModel.currentIndex);
+              },
+            ),
+          ),
+          bottomNavigationBar: Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 10,
+              top: 10,
+              left: 20,
+              right: 20,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              border: Border(
+                top: BorderSide(
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.05),
+                ),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Back Button
+                Opacity(
+                  opacity: _viewModel.currentIndex > 0 ? 1.0 : 0.0,
+                  child: IgnorePointer(
+                    ignoring: _viewModel.currentIndex == 0,
+                    child: _buildBottomNavButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      label: "PREV",
+                      onPressed: () => _viewModel.previousStep(),
+                    ),
+                  ),
+                ),
+
+                // Close Button
+                _buildBottomNavButton(
+                  icon: Icons.close_rounded,
+                  label: "EXIT",
+                  color: Colors.grey,
+                  onPressed: () => Navigator.pop(context),
+                ),
+
+                // Next/Skip Button
+                Opacity(
+                  opacity: _viewModel.currentIndex < _viewModel.steps.length - 1 ? 1.0 : 0.0,
+                  child: IgnorePointer(
+                    ignoring: _viewModel.currentIndex >= _viewModel.steps.length - 1,
+                    child: _buildBottomNavButton(
+                      icon: Icons.arrow_forward_ios_rounded,
+                      label: "SKIP",
+                      onPressed: () => _viewModel.nextStep(false),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
+    );
+  }
+
+  Widget _buildBottomNavButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    Color? color,
+  }) {
+    final themeColor = color ?? AppTheme.primaryColor;
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: themeColor, size: 22),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: themeColor,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -197,9 +330,9 @@ class _LessonScreenState extends State<LessonScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(color: AppTheme.primaryColor),
+          CircularProgressIndicator(color: AppTheme.primaryColor),
           const SizedBox(height: 30),
-          const Text(
+          Text(
             "Get Ready...",
             style: TextStyle(
               fontSize: 24,

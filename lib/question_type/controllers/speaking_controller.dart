@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:superthai/core/models/models.dart';
-
 import 'package:superthai/core/services/data_service.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class SpeakingController extends ChangeNotifier {
   final WordEntry word;
@@ -87,5 +87,11 @@ class SpeakingController extends ChangeNotifier {
         recognized == target ||
         recognized.contains(target) ||
         target.contains(recognized);
+
+    if (_answerCorrect!) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
   }
 }

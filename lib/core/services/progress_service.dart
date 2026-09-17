@@ -8,22 +8,40 @@ import 'data_service.dart';
 class ProgressService extends ChangeNotifier {
   static final ProgressService _instance = ProgressService._internal();
   factory ProgressService() => _instance;
-
   static ProgressService get instance => _instance;
 
   SharedPreferences? _prefs;
   final Set<String> _triedLessonIds = {};
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final Map<String, Set<int>> _completedStepIndices = {};
+  String? _lastLessonId;
+  int _streakCount = 0;
+  DateTime? _lastActivityDate;
+
   static const String _triedLessonsKey = 'tried_lessons';
   static const String _localProgressKey = 'local_progress';
+  static const String usersCollection = 'users';
+
+  int get streakCount => _streakCount;
+  String? get lastLessonId => _lastLessonId;
+  bool get isTrialLimitReached => _triedLessonIds.length >= 3;
+  int get triedLessonsCount => _triedLessonIds.length;
 
   ProgressService._internal() {
-    _initPrefs();
+    _init();
+  }
+
+  Future<void> _init() async {
+    _prefs = await SharedPreferences.getInstance();
+    _loadLocalProgress();
+
     AuthService.instance.userChanges.listen((user) {
       if (user != null) {
         _migrateLocalProgressToFirestore(user.uid);
         DataService.instance.migrateFavorites(user.uid);
         _loadProgressFromFirestore();
-      } else {
+      } else if (AuthService.instance.currentUser == null) {
+        // Only clear if the user is truly logged out
         _completedStepIndices.clear();
         _loadLocalProgress();
         notifyListeners();
@@ -31,54 +49,34 @@ class ProgressService extends ChangeNotifier {
     });
   }
 
-  Future<void> _initPrefs() async {
-    _prefs = await SharedPreferences.getInstance();
-    _loadLocalProgress();
-  }
-
   void _loadLocalProgress() {
     if (_prefs == null) return;
 
-    // Load tried lessons
     final tried = _prefs!.getStringList(_triedLessonsKey);
     if (tried != null) {
       _triedLessonIds.clear();
       _triedLessonIds.addAll(tried);
     }
 
-    // Load streak
     _streakCount = _prefs!.getInt('streak_count') ?? 0;
+    _lastLessonId = _prefs!.getString('last_lesson_id');
     final lastDateStr = _prefs!.getString('last_activity_date');
     if (lastDateStr != null) {
       _lastActivityDate = DateTime.parse(lastDateStr);
       _checkStreakExpiry();
     }
 
-    // Load progress if guest
     if (AuthService.instance.currentUser == null) {
       final localProg = _prefs!.getString(_localProgressKey);
       if (localProg != null) {
         try {
-          final Map<String, dynamic> decoded = jsonDecode(localProg);
-          fromMap(decoded);
+          fromMap(jsonDecode(localProg));
         } catch (e) {
           debugPrint("Error decoding local progress: $e");
         }
       }
     }
   }
-
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final Map<String, Set<int>> _completedStepIndices = {};
-  int _streakCount = 0;
-  DateTime? _lastActivityDate;
-
-  int get streakCount => _streakCount;
-
-  static const String usersCollection = 'users';
-
-  bool get isTrialLimitReached => _triedLessonIds.length >= 3;
-  int get triedLessonsCount => _triedLessonIds.length;
 
   bool canTryLesson(String lessonId) {
     if (AuthService.instance.currentUser != null) return true;
@@ -87,10 +85,10 @@ class ProgressService extends ChangeNotifier {
   }
 
   void markStepAsCompleted(String lessonId, int stepIndex) {
+    _lastLessonId = lessonId;
     _completedStepIndices.putIfAbsent(lessonId, () => {});
     if (!_completedStepIndices[lessonId]!.contains(stepIndex)) {
       _completedStepIndices[lessonId]!.add(stepIndex);
-
       _updateStreak();
 
       if (AuthService.instance.currentUser != null) {
@@ -99,7 +97,6 @@ class ProgressService extends ChangeNotifier {
         _triedLessonIds.add(lessonId);
         _saveLocalProgress();
       }
-      // บังคับให้ UI อัปเดตทันที
       notifyListeners();
     }
   }
@@ -123,7 +120,6 @@ class ProgressService extends ChangeNotifier {
       } else if (difference > 1) {
         _streakCount = 1;
       }
-      // if difference == 0, keep current streak
     }
     _lastActivityDate = today;
   }
@@ -149,6 +145,9 @@ class ProgressService extends ChangeNotifier {
     if (_prefs == null) return;
     await _prefs!.setStringList(_triedLessonsKey, _triedLessonIds.toList());
     await _prefs!.setString(_localProgressKey, jsonEncode(toMap()));
+    if (_lastLessonId != null) {
+      await _prefs!.setString('last_lesson_id', _lastLessonId!);
+    }
     if (_lastActivityDate != null) {
       await _prefs!.setString(
         'last_activity_date',
@@ -162,9 +161,6 @@ class ProgressService extends ChangeNotifier {
     if (_completedStepIndices.isEmpty) return;
 
     try {
-      // First, fetch existing progress from Firestore to merge?
-      // For now, let's just set it.
-      // If the user already had progress, we might want to merge it.
       final doc = await _db.collection(usersCollection).doc(userId).get();
       Map<String, dynamic> mergedProgress = toMap();
 
@@ -172,7 +168,6 @@ class ProgressService extends ChangeNotifier {
         final data = doc.data()!;
         if (data['progress'] != null) {
           final firestoreProg = Map<String, dynamic>.from(data['progress']);
-          // Merge: combine local and firestore
           firestoreProg.forEach((key, value) {
             final list = (value as List).map((e) => e as int).toSet();
             if (mergedProgress.containsKey(key)) {
@@ -193,7 +188,6 @@ class ProgressService extends ChangeNotifier {
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // Clear local after migration
       _triedLessonIds.clear();
       if (_prefs != null) {
         await _prefs!.remove(_triedLessonsKey);
@@ -215,6 +209,7 @@ class ProgressService extends ChangeNotifier {
   }
 
   void resetProgress(String lessonId) {
+    if (_lastLessonId == lessonId) _lastLessonId = null;
     if (_completedStepIndices.containsKey(lessonId)) {
       _completedStepIndices.remove(lessonId);
       if (AuthService.instance.currentUser != null) {
@@ -226,8 +221,6 @@ class ProgressService extends ChangeNotifier {
     }
   }
 
-  // --- Firestore Sync ---
-
   Future<void> _saveProgressToFirestore() async {
     final user = AuthService.instance.currentUser;
     if (user == null) return;
@@ -235,6 +228,7 @@ class ProgressService extends ChangeNotifier {
     try {
       await _db.collection(usersCollection).doc(user.uid).set({
         'progress': toMap(),
+        'lastLessonId': _lastLessonId,
         'streakCount': _streakCount,
         'lastActivityDate': _lastActivityDate != null
             ? Timestamp.fromDate(_lastActivityDate!)
@@ -257,6 +251,7 @@ class ProgressService extends ChangeNotifier {
         if (data['progress'] != null) {
           fromMap(Map<String, dynamic>.from(data['progress']));
         }
+        _lastLessonId = data['lastLessonId'];
         _streakCount = data['streakCount'] ?? 0;
         if (data['lastActivityDate'] != null) {
           _lastActivityDate = (data['lastActivityDate'] as Timestamp).toDate();
@@ -278,6 +273,16 @@ class ProgressService extends ChangeNotifier {
     map.forEach((key, value) {
       _completedStepIndices[key] = (value as List).map((e) => e as int).toSet();
     });
+    notifyListeners();
+  }
+
+  void updateLastLesson(String lessonId) {
+    _lastLessonId = lessonId;
+    if (AuthService.instance.currentUser != null) {
+      _saveProgressToFirestore();
+    } else {
+      _saveLocalProgress();
+    }
     notifyListeners();
   }
 }

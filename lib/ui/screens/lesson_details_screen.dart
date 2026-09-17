@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/data_service.dart';
+import 'package:superthai/ui/widgets/category_picker.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
 import 'package:superthai/core/utils/error_handler.dart';
@@ -65,6 +66,8 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
           : _emojiController.text.trim(),
       steps: widget.lessonPlan.steps,
       creatorId: widget.lessonPlan.creatorId,
+      createdAt: widget.lessonPlan.createdAt,
+      index: widget.lessonPlan.index,
     );
 
     try {
@@ -73,7 +76,6 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Lesson published successfully! 🚀")),
         );
-        // Back to main screen and clear create state
         Navigator.of(context).pop(true);
       }
     } catch (e) {
@@ -100,7 +102,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
         showProfile: false,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppTheme.primaryColor,
           ),
@@ -203,7 +205,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                             color: theme.textTheme.bodyLarge?.color,
                           ),
                           decoration: InputDecoration(
-                            hintText: "", // เอาอิโมจิเงาออก
+                            hintText: "", 
                             counterText: "",
                             contentPadding: const EdgeInsets.symmetric(
                               vertical: 18,
@@ -240,9 +242,30 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        ThaiTextField(
+                        TextField(
                           controller: _categoryController,
-                          label: "e.g., Vocabulary, Grammar",
+                          decoration: InputDecoration(
+                            hintText: "e.g., Vocabulary, Grammar",
+                            prefixIcon: Icon(Icons.category_rounded, color: AppTheme.primaryColor),
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.manage_search_rounded, color: AppTheme.primaryColor),
+                              onPressed: () async {
+                                final result = await showCategoryPicker(context);
+                                if (result != null) {
+                                  setState(() {
+                                    _categoryController.text = result['name'] ?? '';
+                                    _categoryEmojiController.text = result['emoji'] ?? '🎯';
+                                  });
+                                }
+                              },
+                            ),
+                            filled: true,
+                            fillColor: theme.cardColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -270,7 +293,7 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
                             color: theme.textTheme.bodyLarge?.color,
                           ),
                           decoration: InputDecoration(
-                            hintText: "", // เอาอิโมจิเงาออก
+                            hintText: "",
                             counterText: "",
                             contentPadding: const EdgeInsets.symmetric(
                               vertical: 18,
@@ -292,33 +315,9 @@ class _LessonDetailsScreenState extends State<LessonDetailsScreen> {
 
               const SizedBox(height: 8),
 
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline_rounded,
-                      color: AppTheme.primaryColor,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "This lesson contains ${widget.lessonPlan.steps.length} steps.",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              ThaiInfoBox(
+                icon: Icons.info_outline_rounded,
+                text: "This lesson contains ${widget.lessonPlan.steps.length} steps.",
               ),
 
               const SizedBox(height: 60),

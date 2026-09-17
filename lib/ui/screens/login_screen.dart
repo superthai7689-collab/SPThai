@@ -31,12 +31,12 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       if (_isLogin) {
-        await AuthService.instance.login(
+        await authService.login(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
       } else {
-        await AuthService.instance.signup(
+        await authService.signup(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
@@ -60,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -71,16 +72,15 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
               Text(
                 "SuperThai",
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                  color: AppTheme.primaryColor,
-                ),
+                style: theme.textTheme.headlineLarge?.copyWith(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.w900,
+                    ),
               ),
               const SizedBox(height: 8),
               Text(
                 _isLogin ? "Master Thai with ease" : "Start your journey today",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: AppTheme.lightTextColor),
+                style: TextStyle(color: theme.disabledColor),
               ),
               const SizedBox(height: 48),
               ThaiTextField(
@@ -107,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _isLogin
                       ? "New here? Create an account"
                       : "Already have an account? Login",
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.bold,
                   ),

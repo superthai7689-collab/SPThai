@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class AuthService extends ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
-
   static AuthService get instance => _instance;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -15,8 +15,11 @@ class AuthService extends ChangeNotifier {
   String? get role => _role;
   bool get isAdmin => _role == 'admin';
 
+  StreamSubscription? _roleSubscription;
+
   AuthService._internal() {
     _auth.authStateChanges().listen((user) {
+      _roleSubscription?.cancel();
       if (user != null) {
         _listenToUserRole(user.uid);
       } else {
@@ -27,13 +30,16 @@ class AuthService extends ChangeNotifier {
   }
 
   void _listenToUserRole(String uid) {
-    _db.collection('users').doc(uid).snapshots().listen((doc) {
+    _roleSubscription = _db.collection('users').doc(uid).snapshots().listen((doc) {
+      String newRole = 'member';
       if (doc.exists) {
-        _role = doc.data()?['role'] ?? 'member';
-      } else {
-        _role = 'member';
+        newRole = doc.data()?['role'] ?? 'member';
       }
-      notifyListeners();
+      
+      if (_role != newRole) {
+        _role = newRole;
+        notifyListeners();
+      }
     });
   }
 
@@ -63,7 +69,6 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> makeAdmin(String email) async {
-    // Search user by email
     final query = await _db
         .collection('users')
         .where('email', isEqualTo: email)
@@ -71,7 +76,7 @@ class AuthService extends ChangeNotifier {
         .get();
 
     if (query.docs.isEmpty) {
-      throw "User with this email not found in our database.";
+      throw "User not found";
     }
 
     final userDoc = query.docs.first;
@@ -81,19 +86,15 @@ class AuthService extends ChangeNotifier {
   Future<void> updateProfileName(String name) async {
     final user = _auth.currentUser;
     if (user != null) {
-      // Update Auth Profile
       await user.updateDisplayName(name);
 
-      // Update Firestore Database
       await _db.collection('users').doc(user.uid).set({
         'displayName': name,
         'email': user.email,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      // Sync local state
       await user.reload();
-
       notifyListeners();
     }
   }
@@ -102,7 +103,6 @@ class AuthService extends ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null || user.email == null) return;
 
-    // Re-authenticate user first
     AuthCredential credential = EmailAuthProvider.credential(
       email: user.email!,
       password: oldPassword,

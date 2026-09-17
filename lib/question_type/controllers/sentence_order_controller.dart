@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class SentenceOrderController extends ChangeNotifier {
   WordEntry word;
@@ -65,12 +66,18 @@ class SentenceOrderController extends ChangeNotifier {
     String currentSentence = selectedTokens.join('');
     String targetSentence = correctAnswer ?? word.thai;
 
-    // Normalize (remove spaces if any for comparison)
-    targetSentence = targetSentence.replaceAll(' ', '');
-    currentSentence = currentSentence.replaceAll(' ', '');
+    targetSentence = targetSentence.replaceAll(' ', '').toLowerCase();
+    currentSentence = currentSentence.replaceAll(' ', '').toLowerCase();
 
     _answered = true;
     _answerCorrect = currentSentence == targetSentence;
+
+    if (_answerCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 

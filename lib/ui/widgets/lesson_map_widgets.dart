@@ -3,14 +3,14 @@ import 'package:superthai/core/models/models.dart';
 
 class UnitHeaderCard extends StatelessWidget {
   final String title;
-  final String emoji; // เพิ่มอิโมจิ
+  final String emoji;
   final int completed;
   final int total;
 
   const UnitHeaderCard({
     super.key,
     required this.title,
-    this.emoji = '🎯', // ค่าเริ่มต้น
+    this.emoji = '🎯',
     required this.completed,
     required this.total,
   });
@@ -40,7 +40,6 @@ class UnitHeaderCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon Container
           Container(
             width: 70,
             height: 70,
@@ -67,16 +66,16 @@ class UnitHeaderCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.emoji_events_rounded,
-                      color: Colors.orange,
+                      color: theme.colorScheme.primary,
                       size: 20,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       "$completed/$total",
-                      style: const TextStyle(
-                        color: Colors.orange,
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -88,9 +87,7 @@ class UnitHeaderCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: theme.brightness == Brightness.light
-                        ? const Color(0xFF1565C0)
-                        : theme.colorScheme.primary,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
               ],
@@ -128,7 +125,6 @@ class MapNode extends StatelessWidget {
     final bool isCompleted = total > 0 && completed == total;
     final bool isActive = !isCompleted && !isLocked;
 
-    // Calculate star count based on progress
     int stars = 0;
     if (total > 0 && completed > 0) {
       if (completed == total) {
@@ -147,13 +143,14 @@ class MapNode extends StatelessWidget {
     );
 
     if (isCompleted) {
-      bgColor = theme.brightness == Brightness.light
-          ? const Color(0xFFE8F5E9)
-          : Colors.green.withValues(alpha: 0.2);
-      border = Border.all(color: const Color(0xFF81C784), width: 2);
+      bgColor = theme.cardColor;
+      border = Border.all(
+        color: theme.colorScheme.primary.withValues(alpha: 0.5),
+        width: 2,
+      );
     } else if (isActive) {
       bgColor = theme.cardColor;
-      border = Border.all(color: Colors.orange, width: 4);
+      border = Border.all(color: theme.colorScheme.primary, width: 4);
     }
 
     return Align(
@@ -169,7 +166,6 @@ class MapNode extends StatelessWidget {
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
-                // Node Body (ใช้ Emoji แทน Icon)
                 Container(
                   width: 80,
                   height: 80,
@@ -198,8 +194,8 @@ class MapNode extends StatelessWidget {
                     right: 2,
                     child: Container(
                       padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -217,7 +213,7 @@ class MapNode extends StatelessWidget {
                         return Icon(
                           Icons.star,
                           color: index < stars
-                              ? Colors.orange
+                              ? theme.colorScheme.primary
                               : theme.dividerColor.withValues(alpha: 0.2),
                           size: 16,
                         );
@@ -262,7 +258,7 @@ class MapPathPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..strokeWidth =
-          12 // ลดความหนาลงเล็กน้อย
+      12
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
@@ -290,7 +286,6 @@ class MapPathPainter extends CustomPainter {
       );
     }
 
-    // วาดเส้นแบบทึบเพื่อให้ดูเป็นเส้นยาวต่อเนื่องและเป็นระเบียบ
     canvas.drawPath(path, paint);
   }
 

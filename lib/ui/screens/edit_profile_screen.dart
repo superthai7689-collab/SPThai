@@ -48,10 +48,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Update Display Name
       await AuthService.instance.updateProfileName(_nameController.text.trim());
 
-      // 2. Handle Password Change if requested
       if (_oldPasswordController.text.isNotEmpty ||
           _newPasswordController.text.isNotEmpty ||
           _confirmPasswordController.text.isNotEmpty) {
@@ -104,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           if (!_isLoading)
             TextButton(
               onPressed: _saveProfile,
-              child: const Text(
+              child: Text(
                 "Save",
                 style: TextStyle(
                   color: AppTheme.primaryColor,
@@ -114,8 +112,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: SizedBox(
                 width: 20,
                 height: 20,
@@ -132,7 +130,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionTitle("Personal Info"),
+            ThaiSectionLabel(
+              label: "PERSONAL INFO",
+              color: AppTheme.primaryColor,
+              fontSize: 12,
+              padding: const EdgeInsets.only(bottom: 12),
+            ),
             ThaiTextField(
               controller: _nameController,
               label: "Display Name",
@@ -141,7 +144,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             const SizedBox(height: 32),
 
-            _buildSectionTitle("Change Password"),
+            ThaiSectionLabel(
+              label: "CHANGE PASSWORD",
+              color: AppTheme.primaryColor,
+              fontSize: 12,
+              padding: const EdgeInsets.only(bottom: 8),
+            ),
             Text(
               "Leave blank if you don't want to change password",
               style: TextStyle(fontSize: 12, color: theme.disabledColor),
@@ -166,21 +174,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               isPassword: true,
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.primaryColor,
-          letterSpacing: 1.2,
         ),
       ),
     );

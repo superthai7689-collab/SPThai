@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/auth_service.dart';
+import 'package:superthai/ui/widgets/category_picker.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
-import 'package:superthai/question_type/pages/flashcard_page.dart';
-import 'package:superthai/question_type/pages/four_choice_page.dart';
-import 'package:superthai/question_type/pages/fill_blank_page.dart';
-import 'package:superthai/question_type/pages/sentence_order_page.dart';
-import 'package:superthai/question_type/pages/vowel_fill_page.dart';
-import 'package:superthai/question_type/pages/speaking_page.dart';
-import 'package:superthai/question_type/pages/listening_page.dart';
-import 'package:superthai/question_type/pages/listening_choice_page.dart';
+import 'package:superthai/question_type/pages/create/flashcard_create_page.dart';
+import 'package:superthai/question_type/pages/create/four_choice_create_page.dart';
+import 'package:superthai/question_type/pages/create/complete_sentense_create_page.dart';
+import 'package:superthai/question_type/pages/create/meaning_create_page.dart';
+import 'package:superthai/question_type/pages/create/sentence_order_create_page.dart';
+import 'package:superthai/question_type/pages/create/vowel_fill_create_page.dart';
+import 'package:superthai/question_type/pages/create/speaking_create_page.dart';
+import 'package:superthai/question_type/pages/create/listening_create_page.dart';
+import 'package:superthai/question_type/pages/create/listening_choice_create_page.dart';
+import 'package:superthai/question_type/pages/create/info_create_page.dart';
+import 'package:superthai/question_type/pages/create/conversation_create_page.dart';
+import 'package:superthai/question_type/pages/create/sentence_example_create_page.dart';
 import 'package:superthai/ui/screens/lesson_details_screen.dart';
 import 'package:superthai/ui/screens/main_container.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
-import 'package:superthai/ui/screens/login_screen.dart';
 import 'package:uuid/uuid.dart';
 
 class CreateScreen extends StatefulWidget {
@@ -105,9 +109,14 @@ class _CreateScreenState extends State<CreateScreen> {
       'desc': 'Multiple choice question',
     },
     {
-      'name': 'Fill Blank',
+      'name': 'Complete Sentense',
       'icon': Icons.text_fields_rounded,
       'desc': 'Type the missing word',
+    },
+    {
+      'name': 'Meaning',
+      'icon': Icons.translate_rounded,
+      'desc': 'Translate and type',
     },
     {
       'name': 'Speaking',
@@ -133,6 +142,21 @@ class _CreateScreenState extends State<CreateScreen> {
       'name': 'Vowel Fill',
       'icon': Icons.spellcheck_rounded,
       'desc': 'Fill the missing vowel',
+    },
+    {
+      'name': 'Info Note',
+      'icon': Icons.article_rounded,
+      'desc': 'Image and detailed text',
+    },
+    {
+      'name': 'Conversation',
+      'icon': Icons.forum_rounded,
+      'desc': 'Interactive chat dialogue',
+    },
+    {
+      'name': 'Sentence Example',
+      'icon': Icons.notes_rounded,
+      'desc': 'Show sentence and meaning',
     },
   ];
 
@@ -207,145 +231,290 @@ class _CreateScreenState extends State<CreateScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          top: 20,
-          left: 24,
-          right: 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            top: 20,
+            left: 24,
+            right: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Lesson Settings",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: titleController,
-                    decoration: InputDecoration(
-                      labelText: 'Lesson Title',
-                      prefixIcon: const Icon(Icons.title_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+              const SizedBox(height: 24),
+              const Text(
+                "Lesson Settings",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.editModeColor),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Lesson Title',
+                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
+                        prefixIcon: const Icon(Icons.title_rounded, color: AppTheme.editModeColor),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: emojiController,
-                    textAlign: TextAlign.center,
-                    maxLength: 2, // จำกัดความยาวสั้นๆ สำหรับอิโมจิ
-                    decoration: InputDecoration(
-                      labelText: 'Icon',
-                      counterText: "", // ซ่อนตัวเลขบอกจำนวนตัวอักษร
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: TextField(
+                      controller: emojiController,
+                      textAlign: TextAlign.center,
+                      maxLength: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Icon',
+                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
+                        counterText: "",
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: categoryController,
-                    decoration: InputDecoration(
-                      labelText: 'Category Name',
-                      prefixIcon: const Icon(Icons.category_rounded),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      controller: categoryController,
+                      decoration: InputDecoration(
+                        labelText: 'Category Name',
+                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
+                        prefixIcon: const Icon(Icons.category_rounded, color: AppTheme.editModeColor),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.manage_search_rounded, color: AppTheme.editModeColor),
+                          tooltip: "Browse Categories",
+                          onPressed: () async {
+                            final result = await showCategoryPicker(context);
+                            if (result != null) {
+                              setModalState(() {
+                                categoryController.text = result['name'] ?? '';
+                                categoryEmojiController.text = result['emoji'] ?? '🎯';
+                              });
+                            }
+                          },
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 1,
-                  child: TextField(
-                    controller: categoryEmojiController,
-                    textAlign: TextAlign.center,
-                    maxLength: 2,
-                    decoration: InputDecoration(
-                      labelText: 'Cat Icon',
-                      counterText: "",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: TextField(
+                      controller: categoryEmojiController,
+                      textAlign: TextAlign.center,
+                      maxLength: 2,
+                      decoration: InputDecoration(
+                        labelText: 'Cat Icon',
+                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
+                        counterText: "",
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
                       ),
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _lessonTitle = titleController.text;
+                      _lessonCategory = categoryController.text;
+                      _categoryEmoji = categoryEmojiController.text;
+                      _lessonEmoji = emojiController.text;
+                    });
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.editModeColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Save Settings"),
                 ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _lessonTitle = titleController.text;
-                  _lessonCategory = categoryController.text;
-                  _categoryEmoji = categoryEmojiController.text;
-                  _lessonEmoji = emojiController.text;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Save Settings"),
-            ),
-            const SizedBox(height: 32),
-          ],
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _showSignupPrompt(BuildContext context) {
-    showDialog(
+  void _showReorderSheet() {
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Account Required 🚀"),
-        content: const Text(
-          "Please create an account or login to save and share your own lessons!",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Later"),
-          ),
-          ThaiButton(
-            text: "Login / Sign Up",
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-          ),
-        ],
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+            ),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    "Reorder Steps",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Expanded(
+                  child: ReorderableListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    proxyDecorator: (child, index, animation) {
+                      return AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) {
+                          return Material(
+                            elevation: 0,
+                            color: Colors.transparent,
+                            child: child,
+                          );
+                        },
+                        child: child,
+                      );
+                    },
+                    itemCount: _lessonSteps.length,
+                    onReorderItem: (oldIndex, newIndex) {
+                      setState(() {
+                        final item = _lessonSteps.removeAt(oldIndex);
+                        _lessonSteps.insert(newIndex, item);
+
+                        if (_activeStepIndex == oldIndex) {
+                          _activeStepIndex = newIndex;
+                        } else if (oldIndex < _activeStepIndex &&
+                            newIndex >= _activeStepIndex) {
+                          _activeStepIndex -= 1;
+                        } else if (oldIndex > _activeStepIndex &&
+                            newIndex <= _activeStepIndex) {
+                          _activeStepIndex += 1;
+                        }
+                        _pageController.jumpToPage(_activeStepIndex);
+                      });
+                      setModalState(() {});
+                    },
+                    itemBuilder: (context, index) {
+                      final step = _lessonSteps[index];
+                      final theme = Theme.of(context);
+                      return Container(
+                        key: ValueKey(step.id),
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: AppTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
+                            child: Text(
+                              "${index + 1}",
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            step.type,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            step.thai.isNotEmpty
+                                ? step.thai
+                                : (step.question.isNotEmpty
+                                    ? step.question
+                                    : "No content yet"),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(Icons.drag_handle_rounded),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -353,7 +522,7 @@ class _CreateScreenState extends State<CreateScreen> {
   void _saveLesson() async {
     final user = AuthService.instance.currentUser;
     if (user == null) {
-      _showSignupPrompt(context);
+      ThaiDialogs.showSignupPrompt(context);
       return;
     }
 
@@ -365,6 +534,8 @@ class _CreateScreenState extends State<CreateScreen> {
       emoji: _lessonEmoji.isEmpty ? '📚' : _lessonEmoji,
       steps: _lessonSteps,
       creatorId: user.uid,
+      index: widget.existingPlan?.index ?? 0,
+      createdAt: widget.existingPlan?.createdAt,
     );
 
     final result = await Navigator.push<bool>(
@@ -386,70 +557,88 @@ class _CreateScreenState extends State<CreateScreen> {
 
     switch (selectedStep.type) {
       case 'Flashcard':
-        return FlashcardPage(
+        return FlashcardCreatePage(
           word: dummyWord,
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Four Choice':
-        return FourChoicePage(
+        return FourChoiceCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
           correctAnswer: selectedStep.answer,
           category: 'Preview',
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Fill Blank':
-        return FillBlankPage(
+      case 'Complete Sentense':
+        return CompleteSentenseCreatePage(
           sentence: dummySentence,
           showAppBar: false,
-          isEditing: true,
+          onEdit: (field, value) => _updateStepForIndex(index, field, value),
+        );
+      case 'Meaning':
+        return MeaningCreatePage(
+          sentence: dummySentence,
+          showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Speaking':
-        return SpeakingPage(
+        return SpeakingCreatePage(
           word: dummyWord,
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Listening':
-        return ListeningPage(
+        return ListeningCreatePage(
           word: dummyWord,
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Listening Choice':
-        return ListeningChoicePage(
+        return ListeningChoiceCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
           correctAnswer: selectedStep.answer,
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Sentence Order':
-        return SentenceOrderPage(
+        return SentenceOrderCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
           correctAnswer: selectedStep.answer,
           category: 'Preview',
           showAppBar: false,
-          isEditing: true,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       case 'Vowel Fill':
-        return VowelFillPage(
+        return VowelFillCreatePage(
           word: dummyWord,
           question: selectedStep.question,
           answer: selectedStep.answer,
           choices: selectedStep.choices,
           showAppBar: false,
-          isEditing: true,
+          onEdit: (field, value) => _updateStepForIndex(index, field, value),
+        );
+      case 'Culture Note':
+      case 'Info Note':
+        return InfoCreatePage(
+          title: selectedStep.question,
+          content: selectedStep.answer,
+          imageUrl: selectedStep.imageUrl,
+          showAppBar: false,
+          onEdit: (field, value) => _updateStepForIndex(index, field, value),
+        );
+      case 'Conversation':
+        return ConversationCreatePage(
+          initialMessages: selectedStep.conversation ?? [],
+          onEdit: (field, value) => _updateStepForIndex(index, field, value),
+        );
+      case 'Sentence Example':
+        return SentenceExampleCreatePage(
+          initialSentences: selectedStep.conversation ?? [],
+          showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
       default:
@@ -490,8 +679,12 @@ class _CreateScreenState extends State<CreateScreen> {
           lessonStep.question = value;
         } else if (field == 'answer') {
           lessonStep.answer = value;
+        } else if (field == 'imageUrl') {
+          lessonStep.imageUrl = value;
         } else if (field == 'choices') {
           lessonStep.choices = List<String>.from(value);
+        } else if (field == 'conversation') {
+          lessonStep.conversation = List<ChatMessage>.from(value);
         }
       }
     });
@@ -507,7 +700,7 @@ class _CreateScreenState extends State<CreateScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       builder: (context) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: MediaQuery.of(context).size.height * 0.72,
           padding: const EdgeInsets.only(
             top: 12,
             left: 20,
@@ -545,7 +738,16 @@ class _CreateScreenState extends State<CreateScreen> {
                     return InkWell(
                       onTap: () {
                         setState(() {
-                          _lessonSteps[_activeStepIndex].type = type['name'];
+                          final step = _lessonSteps[_activeStepIndex];
+                          step.type = type['name'];
+                          
+                          // Initialize choices if needed
+                          if ((step.type == 'Four Choice' || step.type == 'Listening Choice') && 
+                              step.choices.length < 4) {
+                            step.choices.addAll(
+                              List.generate(4 - step.choices.length, (_) => ''),
+                            );
+                          }
                         });
                         Navigator.pop(context);
                       },
@@ -618,7 +820,7 @@ class _CreateScreenState extends State<CreateScreen> {
                               ),
                             ),
                             if (isCurrent)
-                              const Icon(
+                              Icon(
                                 Icons.check_circle_rounded,
                                 color: AppTheme.primaryColor,
                               ),
@@ -758,7 +960,7 @@ class _CreateScreenState extends State<CreateScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(28),
                     child: KeyedSubtree(
-                      key: ValueKey('$index-${_lessonSteps[index].type}'),
+                      key: ValueKey(_lessonSteps[index].id),
                       child: _buildTestPreviewForIndex(index),
                     ),
                   ),
@@ -793,10 +995,43 @@ class _CreateScreenState extends State<CreateScreen> {
         child: Row(
           children: [
             Expanded(
-              child: ListView.builder(
+              child: ReorderableListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _lessonSteps.length,
                 padding: const EdgeInsets.fromLTRB(8, 12, 16, 12),
+                proxyDecorator: (child, index, animation) {
+                  return AnimatedBuilder(
+                    animation: animation,
+                    builder: (context, child) {
+                      return Material(
+                        elevation: 0,
+                        color: Colors.transparent,
+                        child: child,
+                      );
+                    },
+                    child: child,
+                  );
+                },
+                onReorder: (oldIndex, newIndex) {
+                  setState(() {
+                    if (oldIndex < newIndex) {
+                      newIndex -= 1;
+                    }
+                    final item = _lessonSteps.removeAt(oldIndex);
+                    _lessonSteps.insert(newIndex, item);
+
+                    if (_activeStepIndex == oldIndex) {
+                      _activeStepIndex = newIndex;
+                    } else if (oldIndex < _activeStepIndex &&
+                        newIndex >= _activeStepIndex) {
+                      _activeStepIndex -= 1;
+                    } else if (oldIndex > _activeStepIndex &&
+                        newIndex <= _activeStepIndex) {
+                      _activeStepIndex += 1;
+                    }
+                    _pageController.jumpToPage(_activeStepIndex);
+                  });
+                },
                 itemBuilder: (context, index) {
                   final isActive = index == _activeStepIndex;
                   return _buildStepItem(index, isActive);
@@ -804,6 +1039,7 @@ class _CreateScreenState extends State<CreateScreen> {
               ),
             ),
             const VerticalDivider(width: 20, indent: 15, endIndent: 15),
+            _buildReorderButton(),
             _buildAddButton(),
           ],
         ),
@@ -811,9 +1047,38 @@ class _CreateScreenState extends State<CreateScreen> {
     );
   }
 
+  Widget _buildReorderButton() {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: _showReorderSheet,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 50,
+        height: 50,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: theme.dividerColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: theme.dividerColor.withValues(alpha: 0.2),
+            width: 1.5,
+          ),
+        ),
+        child: Icon(
+          Icons.reorder_rounded,
+          color: theme.iconTheme.color?.withValues(alpha: 0.7),
+          size: 24,
+        ),
+      ),
+    );
+  }
+
   Widget _buildStepItem(int index, bool isActive) {
     final theme = Theme.of(context);
+    final step = _lessonSteps[index];
+    
     return GestureDetector(
+      key: ValueKey(step.id),
       onTap: () {
         setState(() => _activeStepIndex = index);
         _pageController.animateToPage(
@@ -822,7 +1087,6 @@ class _CreateScreenState extends State<CreateScreen> {
           curve: Curves.easeInOut,
         );
       },
-      onLongPress: () => _showStepActions(index),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: Stack(
@@ -863,6 +1127,33 @@ class _CreateScreenState extends State<CreateScreen> {
                         : theme.iconTheme.color?.withValues(alpha: 0.6),
                   ),
                 ],
+              ),
+            ),
+            Positioned(
+              top: -6,
+              left: -6,
+              child: GestureDetector(
+                onTap: () => _showStepActions(index),
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade700,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.cardColor, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.more_horiz_rounded,
+                    color: Colors.white,
+                    size: 10,
+                  ),
+                ),
               ),
             ),
             if (_lessonSteps.length > 1)
@@ -952,6 +1243,17 @@ class _CreateScreenState extends State<CreateScreen> {
               ),
               ListTile(
                 leading: const Icon(
+                  Icons.reorder_rounded,
+                  color: Colors.orange,
+                ),
+                title: const Text("Reorder All Steps"),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showReorderSheet();
+                },
+              ),
+              ListTile(
+                leading: const Icon(
                   Icons.delete_outline_rounded,
                   color: Colors.red,
                 ),
@@ -972,7 +1274,12 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   IconData _getIconForType(String type) {
-    return _questionTypeOptions.firstWhere((e) => e['name'] == type)['icon'] ??
-        Icons.help_outline;
+    try {
+      return _questionTypeOptions.firstWhere(
+        (e) => e['name'] == type || (type == 'Culture Note' && e['name'] == 'Info Note'),
+      )['icon'];
+    } catch (_) {
+      return Icons.help_outline;
+    }
   }
 }

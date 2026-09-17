@@ -86,7 +86,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                       _refreshDiscover();
                     }
                   },
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.add_link_rounded,
                     color: AppTheme.primaryColor,
                   ),
@@ -184,7 +184,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Left Image with Pinned Badge
                 Stack(
                   children: [
                     ClipRRect(
@@ -256,7 +255,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   ],
                 ),
                 const SizedBox(width: 16),
-                // Right Content: Title, Description, and Action Icons
                 Expanded(
                   child: SizedBox(
                     height: 120,
@@ -290,7 +288,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            // Go to Website Icon
                             IconButton(
                               onPressed: () async {
                                 final uri = Uri.parse(item.url);
@@ -312,14 +309,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               },
                               constraints: const BoxConstraints(),
                               padding: const EdgeInsets.all(6),
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.open_in_new_rounded,
                                 size: 20,
                                 color: AppTheme.primaryColor,
                               ),
                               tooltip: "Open Website",
                             ),
-                            // Share Icon
                             IconButton(
                               onPressed: () {
                                 Clipboard.setData(
@@ -343,7 +339,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                 color: theme.disabledColor,
                               ),
                             ),
-                            // Edit/Delete Menu (Admin Only)
                             if (isAdmin)
                               PopupMenuButton<String>(
                                 padding: const EdgeInsets.all(6),

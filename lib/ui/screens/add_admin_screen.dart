@@ -29,7 +29,6 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
       return;
     }
 
-    // Show confirmation dialog before proceeding
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -71,6 +70,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
           SnackBar(
             content: Text("$email is now an Admin! 🛡️"),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
         Navigator.pop(context);
@@ -81,6 +81,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
           SnackBar(
             content: Text(ErrorHandler.getMessage(e)),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -92,6 +93,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    const adminColor = Colors.deepPurple;
 
     return Scaffold(
       appBar: const ThaiAppBar(
@@ -104,46 +106,18 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.deepPurple.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.deepPurple.withValues(alpha: 0.2),
-                ),
-              ),
-              child: const Row(
-                children: [
-                  Icon(
-                    Icons.shield_rounded,
-                    color: Colors.deepPurple,
-                    size: 40,
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      "Promoting a user to Admin grants them full control over lesson plans and discover items.",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            const ThaiInfoBox(
+              icon: Icons.shield_rounded,
+              text: "Promoting a user to Admin grants them full control over lesson plans and discover items.",
+              color: adminColor,
             ),
             const SizedBox(height: 32),
-            Text(
-              "USER EMAIL",
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: theme.disabledColor,
-                letterSpacing: 1.2,
-              ),
+            ThaiSectionLabel(
+              label: "USER EMAIL",
+              color: theme.colorScheme.primary,
+              fontSize: 12,
+              padding: const EdgeInsets.only(bottom: 12),
             ),
-            const SizedBox(height: 12),
             ThaiTextField(
               controller: _emailController,
               label: "Enter user's email address",
@@ -152,11 +126,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
             const SizedBox(height: 40),
             _isLoading
                 ? const Center(
-                    child: CircularProgressIndicator(color: Colors.deepPurple),
+                    child: CircularProgressIndicator(color: adminColor),
                   )
                 : ThaiButton(
                     text: "PROMOTE TO ADMIN",
-                    color: Colors.deepPurple,
+                    color: adminColor,
                     onPressed: _handleProceed,
                   ),
             const SizedBox(height: 20),

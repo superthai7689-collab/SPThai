@@ -2,13 +2,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/data_service.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class FourChoiceController extends ChangeNotifier {
   WordEntry word;
   final String category;
   List<String>? initialChoices;
   String? correctAnswer;
-  int? correctIndex; // Explicitly track which slot is correct
+  int? correctIndex; 
 
   List<WordEntry> choices = [];
   bool _answered = false;
@@ -101,8 +102,8 @@ class FourChoiceController extends ChangeNotifier {
       return choiceIndex == correctIndex;
     }
 
-    // Fallback for Quiz mode
-    return choice.thai == word.thai || choice.english == word.english;
+    return choice.thai.trim().toLowerCase() == word.thai.trim().toLowerCase() || 
+           choice.english.trim().toLowerCase() == word.english.trim().toLowerCase();
   }
 
   void selectChoice(WordEntry choice) {
@@ -110,6 +111,13 @@ class FourChoiceController extends ChangeNotifier {
     _answered = true;
     _answerCorrect = isCorrect(choice);
     _selectedAnswer = choice.english;
+
+    if (_answerCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 }

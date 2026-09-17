@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
-class FillBlankController extends ChangeNotifier {
+class CompleteSentenseController extends ChangeNotifier {
   final ExampleSentence sentence;
   final TextEditingController textController = TextEditingController();
 
@@ -11,7 +12,7 @@ class FillBlankController extends ChangeNotifier {
   bool get checked => _checked;
   bool get isCorrect => _isCorrect;
 
-  FillBlankController(this.sentence) {
+  CompleteSentenseController(this.sentence) {
     textController.addListener(_notify);
   }
 
@@ -19,7 +20,14 @@ class FillBlankController extends ChangeNotifier {
 
   void checkAnswer() {
     _checked = true;
-    _isCorrect = textController.text.trim() == sentence.gapAnswer;
+    _isCorrect = textController.text.trim().toLowerCase() == sentence.gapAnswer.trim().toLowerCase();
+
+    if (_isCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 

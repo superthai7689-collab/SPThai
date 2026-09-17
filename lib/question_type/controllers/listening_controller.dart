@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/data_service.dart';
+import 'package:superthai/core/services/sound_service.dart';
 
 class ListeningController extends ChangeNotifier {
   final WordEntry word;
@@ -16,7 +17,6 @@ class ListeningController extends ChangeNotifier {
 
   ListeningController(this.word) {
     textController.addListener(_notify);
-    // Don't speak immediately in constructor to avoid issues during page transitions
   }
 
   void init() {
@@ -45,7 +45,14 @@ class ListeningController extends ChangeNotifier {
 
   void checkAnswer() {
     _answered = true;
-    _isCorrect = textController.text.trim() == word.thai;
+    _isCorrect = textController.text.trim().toLowerCase() == word.thai.trim().toLowerCase();
+
+    if (_isCorrect) {
+      SoundService.instance.playCorrect();
+    } else {
+      SoundService.instance.playWrong();
+    }
+
     notifyListeners();
   }
 

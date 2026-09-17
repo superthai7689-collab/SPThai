@@ -7,6 +7,7 @@ import 'package:superthai/ui/widgets/shared_widgets.dart';
 
 import 'package:superthai/ui/screens/login_screen.dart';
 import 'package:superthai/ui/screens/edit_profile_screen.dart';
+import 'package:superthai/ui/screens/manage_lessons_screen.dart';
 import 'package:superthai/ui/screens/add_admin_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -37,15 +38,26 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // User Profile Section
                   _buildProfileHeader(context, name, email, role, isGuest),
                   const SizedBox(height: 32),
 
-                  // Admin Panel (Only for Admins)
                   if (isAdmin) ...[
-                    _buildSectionTitle("Admin Management"),
-                    _buildSettingsGroup(context, [
-                      _SettingsTile(
+                    _buildSectionTitle(context, "Admin Management"),
+                    ThaiSettingsGroup(children: [
+                      ThaiSettingsTile(
+                        icon: Icons.reorder_rounded,
+                        title: "Manage Lesson Order",
+                        color: Colors.orange,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ManageLessonsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      ThaiSettingsTile(
                         icon: Icons.admin_panel_settings_rounded,
                         title: "Add New Admin",
                         color: Colors.deepPurple,
@@ -62,10 +74,9 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 32),
                   ],
 
-                  // Settings Sections
-                  _buildSectionTitle("General"),
-                  _buildSettingsGroup(context, [
-                    _SettingsTile(
+                  _buildSectionTitle(context, "General"),
+                  ThaiSettingsGroup(children: [
+                    ThaiSettingsTile(
                       icon: Icons.person_outline_rounded,
                       title: "Edit Profile",
                       color: Colors.blue,
@@ -80,9 +91,13 @@ class SettingsScreen extends StatelessWidget {
                               );
                             },
                     ),
+                  ]),
+                  const SizedBox(height: 32),
+                  _buildSectionTitle(context, "Appearance"),
+                  ThaiSettingsGroup(children: [
                     Consumer<ThemeService>(
                       builder: (context, theme, _) {
-                        return _SettingsTile(
+                        return ThaiSettingsTile(
                           icon: Icons.dark_mode_outlined,
                           title: "Dark Mode",
                           color: Colors.indigo,
@@ -92,11 +107,58 @@ class SettingsScreen extends StatelessWidget {
                         );
                       },
                     ),
+                    Consumer<ThemeService>(
+                      builder: (context, theme, _) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: theme.primaryColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(Icons.palette_outlined, color: theme.primaryColor, size: 22),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Expanded(
+                                    child: Text(
+                                      "Theme Color",
+                                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                height: 45,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: [
+                                    _buildColorOption(context, theme, const Color(0xFFFF9800)), // Orange
+                                    _buildColorOption(context, theme, Colors.blue),
+                                    _buildColorOption(context, theme, Colors.teal),
+                                    _buildColorOption(context, theme, Colors.pink),
+                                    _buildColorOption(context, theme, Colors.purple),
+                                    _buildColorOption(context, theme, Colors.green),
+                                    _buildColorOption(context, theme, Colors.red),
+                                    _buildColorOption(context, theme, Colors.indigo),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ]),
 
                   const SizedBox(height: 40),
 
-                  // Logout/Login Button
                   SizedBox(
                     width: double.infinity,
                     child: TextButton.icon(
@@ -115,7 +177,7 @@ class SettingsScreen extends StatelessWidget {
                       style: TextButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         backgroundColor:
-                            (isGuest ? AppTheme.primaryColor : Colors.red)
+                            (isGuest ? Theme.of(context).primaryColor : Colors.red)
                                 .withValues(alpha: 0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -123,12 +185,12 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       icon: Icon(
                         isGuest ? Icons.login_rounded : Icons.logout_rounded,
-                        color: isGuest ? AppTheme.primaryColor : Colors.red,
+                        color: isGuest ? Theme.of(context).primaryColor : Colors.red,
                       ),
                       label: Text(
                         isGuest ? "Login / Sign Up" : "Logout",
                         style: TextStyle(
-                          color: isGuest ? AppTheme.primaryColor : Colors.red,
+                          color: isGuest ? Theme.of(context).primaryColor : Colors.red,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -138,7 +200,7 @@ class SettingsScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   const Center(
                     child: Text(
-                      "Version 1.2.0 (Build 45)",
+                      "Version 1.2.8 (Build 48)",
                       style: TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ),
@@ -193,7 +255,7 @@ class SettingsScreen extends StatelessWidget {
             child: CircleAvatar(
               radius: 35,
               backgroundColor: isGuest
-                  ? AppTheme.accentColor
+                  ? primaryColor.withValues(alpha: 0.15)
                   : (isAdmin ? Colors.deepPurple : primaryColor).withValues(
                       alpha: 0.15,
                     ),
@@ -261,121 +323,43 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: AppTheme.primaryColor,
+          color: Theme.of(context).primaryColor,
         ),
       ),
     );
   }
 
-  Widget _buildSettingsGroup(BuildContext context, List<Widget> tiles) {
-    final theme = Theme.of(context);
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: tiles.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tile = entry.value;
-          final isLast = index == tiles.length - 1;
-
-          return Column(
-            children: [
-              tile,
-              if (!isLast)
-                Divider(
-                  height: 1,
-                  indent: 60,
-                  endIndent: 20,
-                  color: theme.dividerColor,
+  Widget _buildColorOption(BuildContext context, ThemeService theme, Color color) {
+    final isSelected = theme.primaryColor.toARGB32() == color.toARGB32();
+    return GestureDetector(
+      onTap: () => theme.setPrimaryColor(color),
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        width: 45,
+        height: 45,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: isSelected
+              ? Border.all(
+                  color: Theme.of(context).textTheme.bodyLarge?.color ??
+                      Colors.black,
+                  width: 3,
+                )
+              : Border.all(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  width: 1,
                 ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final bool isSwitch;
-  final bool switchValue;
-  final ValueChanged<bool>? onSwitchChanged;
-  final VoidCallback? onTap;
-
-  const _SettingsTile({
-    required this.icon,
-    required this.title,
-    required this.color,
-    this.isSwitch = false,
-    this.switchValue = false,
-    this.onSwitchChanged,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: isSwitch ? null : (onTap ?? () {}),
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textTheme.bodyLarge?.color,
-                ),
-              ),
-            ),
-            if (isSwitch)
-              Switch(
-                value: switchValue,
-                onChanged: onSwitchChanged,
-                activeThumbColor: AppTheme.primaryColor,
-              ),
-            if (!isSwitch) const SizedBox(width: 8),
-            if (!isSwitch)
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: theme.disabledColor,
-              ),
-          ],
         ),
+        child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
       ),
     );
   }

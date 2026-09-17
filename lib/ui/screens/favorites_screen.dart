@@ -3,7 +3,6 @@ import 'package:flutter_tts/flutter_tts.dart' hide ErrorHandler;
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/data_service.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
-
 import 'package:provider/provider.dart';
 import 'package:superthai/core/services/progress_service.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
@@ -18,7 +17,7 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   Future<List<WordEntry>>? _wordsFuture;
-  final FlutterTts _tts = DataService.instance.tts;
+  final FlutterTts _tts = dataService.tts;
   String _selectedCategory = 'Favorites';
   List<LessonPlan> _allPlans = [];
   Set<String> _favoriteIds = {};
@@ -30,10 +29,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   void initState() {
     super.initState();
     _loadInitialData();
+    dataService.addListener(_refreshWords);
   }
 
   @override
   void dispose() {
+    dataService.removeListener(_refreshWords);
     _searchController.dispose();
     super.dispose();
   }
@@ -41,8 +42,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   Future<void> _loadInitialData() async {
     try {
       final results = await Future.wait([
-        DataService.instance.getAllLessonPlans(),
-        DataService.instance.getFavoriteWords(),
+        dataService.getAllLessonPlans(),
+        dataService.getFavoriteWords(),
       ]);
 
       if (mounted) {
@@ -50,7 +51,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           _allPlans = results[0] as List<LessonPlan>;
           final favoriteWords = results[1] as List<WordEntry>;
           _favoriteIds = favoriteWords.map((word) => word.stableId).toSet();
-
           _refreshWords();
         });
       }
@@ -61,12 +61,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   void _refreshWords() {
     if (!mounted) return;
+
+    dataService.getFavoriteWords().then((favoriteWords) {
+      if (mounted) {
+        setState(() {
+          _favoriteIds = favoriteWords.map((word) => word.stableId).toSet();
+        });
+      }
+    }).catchError((e) {
+      debugPrint("Error refreshing favorite IDs: $e");
+    });
+
     setState(() {
       if (_searchQuery.isNotEmpty) {
-        // Global search across all unlocked categories
         final List<WordEntry> filteredWords = [];
         final Set<String> seenWords = {};
-        final progress = ProgressService.instance;
+        final progress = progressService;
         final query = _searchQuery.toLowerCase();
 
         for (var lessonPlan in _allPlans) {
@@ -90,7 +100,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         }
         _wordsFuture = Future.value(filteredWords);
       } else if (_selectedCategory == 'Favorites') {
-        _wordsFuture = DataService.instance.getFavoriteWords();
+        _wordsFuture = dataService.getFavoriteWords();
       } else {
         final List<WordEntry> categoryWords = [];
         final Set<String> seenWords = {};
@@ -116,26 +126,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   WordEntry? _extractWordFromStep(LessonStepData step) {
-    // 1. ถ้ามีครบ Thai/English ให้ใช้ตัวนั้นเลย (Flashcard, Speaking, Quiz)
     if (step.thai.isNotEmpty && step.english.isNotEmpty) {
       return step.toWordEntry();
     }
 
-    // 2. ถ้าเป็น Fill Blank (ใช้ question เป็น Thai, answer เป็น English/Thai)
     if (step.type.toLowerCase().contains('fill') ||
         step.type.toLowerCase().contains('blank')) {
       if (step.question.isNotEmpty && step.answer.isNotEmpty) {
         return WordEntry(
           id: 'temp',
-          thai: step.answer, // ตัวที่ต้องเติมคือคำศัพท์หลัก
+          thai: step.answer,
           phonetic: '',
-          english: step.question, // ประโยคคำถามคือบริบท
+          english: step.question,
           category: 'extracted',
         );
       }
     }
 
-    // 3. กรณีอื่นๆ ถ้ามีภาษาไทยอย่างน้อย 1 อย่าง ให้พยายามสร้าง entry
     if (step.thai.isNotEmpty) {
       return WordEntry(
         id: 'temp',
@@ -166,7 +173,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         _favoriteIds.add(wordId);
       }
     });
-    await DataService.instance.toggleFavorite(word);
+    await dataService.toggleFavorite(word);
     if (_selectedCategory == 'Favorites') {
       _refreshWords();
     }
@@ -175,10 +182,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final categories = _allPlans
-        .map((lessonPlan) => lessonPlan.category)
-        .toSet()
-        .toList();
+    final categories = _allPlans.map((p) => p.category).toSet().toList();
     final progress = Provider.of<ProgressService>(context);
 
     return Scaffold(
@@ -186,67 +190,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       appBar: const ThaiAppBar(title: "Vocabulary"),
       body: Column(
         children: [
-          // Search Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(
-                      alpha: theme.brightness == Brightness.light ? 0.03 : 0.2,
-                    ),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                style: TextStyle(color: theme.textTheme.bodyLarge?.color),
-                onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
-                  });
-                  _refreshWords();
-                },
-                decoration: InputDecoration(
-                  hintText: "Search words or categories...",
-                  hintStyle: TextStyle(
-                    color: theme.disabledColor,
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search_rounded,
-                    color: theme.disabledColor,
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.close_rounded,
-                            size: 20,
-                            color: theme.disabledColor,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = "");
-                            _refreshWords();
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                  fillColor: Colors.transparent,
-                ),
-              ),
+            child: ThaiSearchBar(
+              controller: _searchController,
+              hintText: "Search words or categories...",
+              onChanged: (val) {
+                setState(() => _searchQuery = val);
+                _refreshWords();
+              },
+              onClear: () {
+                _searchController.clear();
+                setState(() => _searchQuery = "");
+                _refreshWords();
+              },
             ),
           ),
-
-          // Category Selection (Only show if not searching)
           if (_searchQuery.isEmpty)
             Container(
               height: 60,
@@ -285,29 +244,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 final words = snapshot.data ?? [];
 
                 if (words.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _selectedCategory == 'Favorites'
-                              ? Icons.favorite_border
-                              : Icons.menu_book_rounded,
-                          size: 80,
-                          color: Colors.grey.shade300,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _selectedCategory == 'Favorites'
-                              ? "No favorites yet"
-                              : "No words in this category",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return ThaiEmptyState(
+                    icon: _selectedCategory == 'Favorites'
+                        ? Icons.favorite_border
+                        : Icons.menu_book_rounded,
+                    title: _selectedCategory == 'Favorites'
+                        ? "No favorites yet"
+                        : "No words in this category",
                   );
                 }
 
@@ -317,7 +260,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     vertical: 16,
                   ),
                   itemCount: words.length,
-                  addAutomaticKeepAlives: true,
                   itemBuilder: (context, index) {
                     final word = words[index];
                     return _buildWordCard(word);
@@ -405,7 +347,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Thai Word & Phonetic
                 Text(
                   word.thai,
                   style: TextStyle(
@@ -425,21 +366,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // English Meaning Section
                 Text(
                   word.english,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: theme.textTheme.bodyMedium?.color?.withValues(
-                      alpha: 0.8,
-                    ),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
                   ),
                 ),
               ],
             ),
           ),
-          // Star Icon - Top Right
           Positioned(
             top: 4,
             right: 4,
@@ -452,7 +389,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ),
             ),
           ),
-          // Speak Icon - Bottom Right
           Positioned(
             bottom: 10,
             right: 12,

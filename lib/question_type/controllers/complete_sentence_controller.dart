@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/sound_service.dart';
 
-class CompleteSentenseController extends ChangeNotifier {
+class CompleteSentenceController extends ChangeNotifier {
   final ExampleSentence sentence;
   final TextEditingController textController = TextEditingController();
 
@@ -12,7 +12,7 @@ class CompleteSentenseController extends ChangeNotifier {
   bool get checked => _checked;
   bool get isCorrect => _isCorrect;
 
-  CompleteSentenseController(this.sentence) {
+  CompleteSentenceController(this.sentence) {
     textController.addListener(_notify);
   }
 

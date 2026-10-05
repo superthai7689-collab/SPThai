@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:superthai/core/enums/question_type.dart';
 import 'package:superthai/core/models/models.dart';
 import 'package:superthai/core/services/auth_service.dart';
-import 'package:superthai/ui/widgets/category_picker.dart';
-import 'package:superthai/ui/theme/app_theme.dart';
+import 'package:superthai/question_type/pages/create/complete_sentence_create_page.dart';
+import 'package:superthai/question_type/pages/create/conversation_create_page.dart';
 import 'package:superthai/question_type/pages/create/flashcard_create_page.dart';
 import 'package:superthai/question_type/pages/create/four_choice_create_page.dart';
-import 'package:superthai/question_type/pages/create/complete_sentense_create_page.dart';
-import 'package:superthai/question_type/pages/create/meaning_create_page.dart';
-import 'package:superthai/question_type/pages/create/sentence_order_create_page.dart';
-import 'package:superthai/question_type/pages/create/vowel_fill_create_page.dart';
-import 'package:superthai/question_type/pages/create/speaking_create_page.dart';
-import 'package:superthai/question_type/pages/create/listening_create_page.dart';
-import 'package:superthai/question_type/pages/create/listening_choice_create_page.dart';
 import 'package:superthai/question_type/pages/create/info_create_page.dart';
-import 'package:superthai/question_type/pages/create/conversation_create_page.dart';
+import 'package:superthai/question_type/pages/create/listening_choice_create_page.dart';
+import 'package:superthai/question_type/pages/create/listening_create_page.dart';
+import 'package:superthai/question_type/pages/create/meaning_create_page.dart';
 import 'package:superthai/question_type/pages/create/sentence_example_create_page.dart';
+import 'package:superthai/question_type/pages/create/sentence_order_create_page.dart';
+import 'package:superthai/question_type/pages/create/speaking_create_page.dart';
+import 'package:superthai/question_type/pages/create/vowel_fill_create_page.dart';
+import 'package:superthai/ui/screens/create/widgets/lesson_reorder_sheet.dart';
+import 'package:superthai/ui/screens/create/widgets/lesson_settings_sheet.dart';
+import 'package:superthai/ui/screens/create/widgets/question_type_picker_sheet.dart';
 import 'package:superthai/ui/screens/lesson_details_screen.dart';
 import 'package:superthai/ui/screens/main_container.dart';
+import 'package:superthai/ui/theme/app_theme.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,16 +40,24 @@ class _CreateScreenState extends State<CreateScreen> {
   String? _existingId;
 
   List<LessonStepData> _lessonSteps = [
-    LessonStepData(type: 'Flashcard', thai: '', phonetic: '', english: ''),
+    LessonStepData(
+      type: QuestionType.flashcard.typeKey,
+      thai: '',
+      phonetic: '',
+      english: '',
+    ),
   ];
   int _activeStepIndex = 0;
-
   late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _activeStepIndex);
+    _populateExistingPlanData();
+  }
+
+  void _populateExistingPlanData() {
     if (widget.existingPlan != null) {
       _existingId = widget.existingPlan!.id;
       _lessonTitle = widget.existingPlan!.title;
@@ -68,12 +80,7 @@ class _CreateScreenState extends State<CreateScreen> {
     if (widget.existingPlan != oldWidget.existingPlan) {
       setState(() {
         if (widget.existingPlan != null) {
-          _existingId = widget.existingPlan!.id;
-          _lessonTitle = widget.existingPlan!.title;
-          _lessonCategory = widget.existingPlan!.category;
-          _categoryEmoji = widget.existingPlan!.categoryEmoji;
-          _lessonEmoji = widget.existingPlan!.emoji;
-          _lessonSteps = List.from(widget.existingPlan!.steps);
+          _populateExistingPlanData();
         } else {
           _existingId = null;
           _lessonTitle = 'My New Lesson';
@@ -82,7 +89,7 @@ class _CreateScreenState extends State<CreateScreen> {
           _lessonEmoji = '📚';
           _lessonSteps = [
             LessonStepData(
-              type: 'Flashcard',
+              type: QuestionType.flashcard.typeKey,
               thai: '',
               phonetic: '',
               english: '',
@@ -96,69 +103,6 @@ class _CreateScreenState extends State<CreateScreen> {
       });
     }
   }
-
-  final List<Map<String, dynamic>> _questionTypeOptions = [
-    {
-      'name': 'Flashcard',
-      'icon': Icons.amp_stories_rounded,
-      'desc': 'Show word and meaning',
-    },
-    {
-      'name': 'Four Choice',
-      'icon': Icons.quiz_rounded,
-      'desc': 'Multiple choice question',
-    },
-    {
-      'name': 'Complete Sentense',
-      'icon': Icons.text_fields_rounded,
-      'desc': 'Type the missing word',
-    },
-    {
-      'name': 'Meaning',
-      'icon': Icons.translate_rounded,
-      'desc': 'Translate and type',
-    },
-    {
-      'name': 'Speaking',
-      'icon': Icons.mic_rounded,
-      'desc': 'Practice pronunciation',
-    },
-    {
-      'name': 'Listening',
-      'icon': Icons.headphones_rounded,
-      'desc': 'Listen and identify',
-    },
-    {
-      'name': 'Listening Choice',
-      'icon': Icons.hearing_rounded,
-      'desc': 'Listen and choose 4 choices',
-    },
-    {
-      'name': 'Sentence Order',
-      'icon': Icons.sort_rounded,
-      'desc': 'Arrange words in order',
-    },
-    {
-      'name': 'Vowel Fill',
-      'icon': Icons.spellcheck_rounded,
-      'desc': 'Fill the missing vowel',
-    },
-    {
-      'name': 'Info Note',
-      'icon': Icons.article_rounded,
-      'desc': 'Image and detailed text',
-    },
-    {
-      'name': 'Conversation',
-      'icon': Icons.forum_rounded,
-      'desc': 'Interactive chat dialogue',
-    },
-    {
-      'name': 'Sentence Example',
-      'icon': Icons.notes_rounded,
-      'desc': 'Show sentence and meaning',
-    },
-  ];
 
   void _addStep() {
     setState(() {
@@ -220,307 +164,77 @@ class _CreateScreenState extends State<CreateScreen> {
   }
 
   void _showLessonSettings() {
-    final titleController = TextEditingController(text: _lessonTitle);
-    final categoryController = TextEditingController(text: _lessonCategory);
-    final categoryEmojiController = TextEditingController(text: _categoryEmoji);
-    final emojiController = TextEditingController(text: _lessonEmoji);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            top: 20,
-            left: 24,
-            right: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                "Lesson Settings",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.editModeColor),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(
-                        labelText: 'Lesson Title',
-                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
-                        prefixIcon: const Icon(Icons.title_rounded, color: AppTheme.editModeColor),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: TextField(
-                      controller: emojiController,
-                      textAlign: TextAlign.center,
-                      maxLength: 2,
-                      decoration: InputDecoration(
-                        labelText: 'Icon',
-                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
-                        counterText: "",
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      controller: categoryController,
-                      decoration: InputDecoration(
-                        labelText: 'Category Name',
-                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
-                        prefixIcon: const Icon(Icons.category_rounded, color: AppTheme.editModeColor),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.manage_search_rounded, color: AppTheme.editModeColor),
-                          tooltip: "Browse Categories",
-                          onPressed: () async {
-                            final result = await showCategoryPicker(context);
-                            if (result != null) {
-                              setModalState(() {
-                                categoryController.text = result['name'] ?? '';
-                                categoryEmojiController.text = result['emoji'] ?? '🎯';
-                              });
-                            }
-                          },
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: TextField(
-                      controller: categoryEmojiController,
-                      textAlign: TextAlign.center,
-                      maxLength: 2,
-                      decoration: InputDecoration(
-                        labelText: 'Cat Icon',
-                        labelStyle: const TextStyle(color: AppTheme.editModeColor),
-                        counterText: "",
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: const BorderSide(color: AppTheme.editModeColor, width: 2),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _lessonTitle = titleController.text;
-                      _lessonCategory = categoryController.text;
-                      _categoryEmoji = categoryEmojiController.text;
-                      _lessonEmoji = emojiController.text;
-                    });
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.editModeColor,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("Save Settings"),
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
+    LessonSettingsSheet.show(
+      context,
+      title: _lessonTitle,
+      category: _lessonCategory,
+      categoryEmoji: _categoryEmoji,
+      lessonEmoji: _lessonEmoji,
+      onSave: ({
+        required title,
+        required category,
+        required categoryEmoji,
+        required lessonEmoji,
+      }) {
+        setState(() {
+          _lessonTitle = title;
+          _lessonCategory = category;
+          _categoryEmoji = categoryEmoji;
+          _lessonEmoji = lessonEmoji;
+        });
+      },
     );
   }
 
   void _showReorderSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.75,
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    "Reorder Steps",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Expanded(
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    proxyDecorator: (child, index, animation) {
-                      return AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) {
-                          return Material(
-                            elevation: 0,
-                            color: Colors.transparent,
-                            child: child,
-                          );
-                        },
-                        child: child,
-                      );
-                    },
-                    itemCount: _lessonSteps.length,
-                    onReorderItem: (oldIndex, newIndex) {
-                      setState(() {
-                        final item = _lessonSteps.removeAt(oldIndex);
-                        _lessonSteps.insert(newIndex, item);
+    LessonReorderSheet.show(
+      context,
+      steps: _lessonSteps,
+      activeStepIndex: _activeStepIndex,
+      onReorder: (oldIndex, newIndex) {
+        setState(() {
+          final item = _lessonSteps.removeAt(oldIndex);
+          _lessonSteps.insert(newIndex, item);
 
-                        if (_activeStepIndex == oldIndex) {
-                          _activeStepIndex = newIndex;
-                        } else if (oldIndex < _activeStepIndex &&
-                            newIndex >= _activeStepIndex) {
-                          _activeStepIndex -= 1;
-                        } else if (oldIndex > _activeStepIndex &&
-                            newIndex <= _activeStepIndex) {
-                          _activeStepIndex += 1;
-                        }
-                        _pageController.jumpToPage(_activeStepIndex);
-                      });
-                      setModalState(() {});
-                    },
-                    itemBuilder: (context, index) {
-                      final step = _lessonSteps[index];
-                      final theme = Theme.of(context);
-                      return Container(
-                        key: ValueKey(step.id),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 4,
-                          ),
-                          leading: CircleAvatar(
-                            backgroundColor: AppTheme.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: Text(
-                              "${index + 1}",
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          title: Text(
-                            step.type,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            step.thai.isNotEmpty
-                                ? step.thai
-                                : (step.question.isNotEmpty
-                                    ? step.question
-                                    : "No content yet"),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: const Icon(Icons.drag_handle_rounded),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          );
-        },
-      ),
+          if (_activeStepIndex == oldIndex) {
+            _activeStepIndex = newIndex;
+          } else if (oldIndex < _activeStepIndex &&
+              newIndex >= _activeStepIndex) {
+            _activeStepIndex -= 1;
+          } else if (oldIndex > _activeStepIndex &&
+              newIndex <= _activeStepIndex) {
+            _activeStepIndex += 1;
+          }
+          _pageController.jumpToPage(_activeStepIndex);
+        });
+      },
+    );
+  }
+
+  void _showTestTypePicker() {
+    final currentType = _lessonSteps[_activeStepIndex].questionType;
+    QuestionTypePickerSheet.show(
+      context,
+      currentType: currentType,
+      onSelectType: (selectedType) {
+        setState(() {
+          final step = _lessonSteps[_activeStepIndex];
+          step.questionType = selectedType;
+
+          if ((selectedType == QuestionType.fourChoice ||
+                  selectedType == QuestionType.listeningChoice) &&
+              step.choices.length < 4) {
+            step.choices.addAll(
+              List.generate(4 - step.choices.length, (_) => ''),
+            );
+          }
+        });
+      },
     );
   }
 
   void _saveLesson() async {
-    final user = AuthService.instance.currentUser;
+    final user = context.read<AuthService>().currentUser;
     if (user == null) {
       ThaiDialogs.showSignupPrompt(context);
       return;
@@ -555,14 +269,14 @@ class _CreateScreenState extends State<CreateScreen> {
     final dummyWord = selectedStep.toWordEntry();
     final dummySentence = selectedStep.toExampleSentence();
 
-    switch (selectedStep.type) {
-      case 'Flashcard':
+    switch (selectedStep.questionType) {
+      case QuestionType.flashcard:
         return FlashcardCreatePage(
           word: dummyWord,
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Four Choice':
+      case QuestionType.fourChoice:
         return FourChoiceCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
@@ -571,31 +285,31 @@ class _CreateScreenState extends State<CreateScreen> {
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Complete Sentense':
-        return CompleteSentenseCreatePage(
+      case QuestionType.completeSentence:
+        return CompleteSentenceCreatePage(
           sentence: dummySentence,
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Meaning':
+      case QuestionType.meaning:
         return MeaningCreatePage(
           sentence: dummySentence,
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Speaking':
+      case QuestionType.speaking:
         return SpeakingCreatePage(
           word: dummyWord,
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Listening':
+      case QuestionType.listening:
         return ListeningCreatePage(
           word: dummyWord,
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Listening Choice':
+      case QuestionType.listeningChoice:
         return ListeningChoiceCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
@@ -603,7 +317,7 @@ class _CreateScreenState extends State<CreateScreen> {
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Sentence Order':
+      case QuestionType.sentenceOrder:
         return SentenceOrderCreatePage(
           word: dummyWord,
           choices: selectedStep.choices,
@@ -612,7 +326,7 @@ class _CreateScreenState extends State<CreateScreen> {
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Vowel Fill':
+      case QuestionType.vowelFill:
         return VowelFillCreatePage(
           word: dummyWord,
           question: selectedStep.question,
@@ -621,8 +335,7 @@ class _CreateScreenState extends State<CreateScreen> {
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Culture Note':
-      case 'Info Note':
+      case QuestionType.infoNote:
         return InfoCreatePage(
           title: selectedStep.question,
           content: selectedStep.answer,
@@ -630,19 +343,17 @@ class _CreateScreenState extends State<CreateScreen> {
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Conversation':
+      case QuestionType.conversation:
         return ConversationCreatePage(
           initialMessages: selectedStep.conversation ?? [],
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      case 'Sentence Example':
+      case QuestionType.sentenceExample:
         return SentenceExampleCreatePage(
           initialSentences: selectedStep.conversation ?? [],
           showAppBar: false,
           onEdit: (field, value) => _updateStepForIndex(index, field, value),
         );
-      default:
-        return const Center(child: Text('Select a test type'));
     }
   }
 
@@ -650,8 +361,8 @@ class _CreateScreenState extends State<CreateScreen> {
     setState(() {
       final lessonStep = _lessonSteps[index];
       if (field.startsWith('choice_')) {
-        int choiceIndex = int.parse(field.split('_')[1]);
-        String oldChoiceText = lessonStep.choices.length > choiceIndex
+        final choiceIndex = int.parse(field.split('_')[1]);
+        final oldChoiceText = lessonStep.choices.length > choiceIndex
             ? lessonStep.choices[choiceIndex]
             : "";
 
@@ -669,178 +380,41 @@ class _CreateScreenState extends State<CreateScreen> {
           lessonStep.answer = value;
         }
       } else {
-        if (field == 'thai') {
-          lessonStep.thai = value;
-        } else if (field == 'phonetic') {
-          lessonStep.phonetic = value;
-        } else if (field == 'english') {
-          lessonStep.english = value;
-        } else if (field == 'question') {
-          lessonStep.question = value;
-        } else if (field == 'answer') {
-          lessonStep.answer = value;
-        } else if (field == 'imageUrl') {
-          lessonStep.imageUrl = value;
-        } else if (field == 'choices') {
-          lessonStep.choices = List<String>.from(value);
-        } else if (field == 'conversation') {
-          lessonStep.conversation = List<ChatMessage>.from(value);
+        switch (field) {
+          case 'thai':
+            lessonStep.thai = value;
+            break;
+          case 'phonetic':
+            lessonStep.phonetic = value;
+            break;
+          case 'english':
+            lessonStep.english = value;
+            break;
+          case 'question':
+            lessonStep.question = value;
+            break;
+          case 'answer':
+            lessonStep.answer = value;
+            break;
+          case 'imageUrl':
+            lessonStep.imageUrl = value;
+            break;
+          case 'choices':
+            lessonStep.choices = List<String>.from(value);
+            break;
+          case 'conversation':
+            lessonStep.conversation = List<ChatMessage>.from(value);
+            break;
         }
       }
     });
   }
 
-  void _showTestTypePicker() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      builder: (context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.72,
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 20,
-            right: 20,
-            bottom: 40,
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Change Test Type',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: ListView.separated(
-                  itemCount: _questionTypeOptions.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final theme = Theme.of(context);
-                    final type = _questionTypeOptions[index];
-                    final isCurrent =
-                        _lessonSteps[_activeStepIndex].type == type['name'];
-                    return InkWell(
-                      onTap: () {
-                        setState(() {
-                          final step = _lessonSteps[_activeStepIndex];
-                          step.type = type['name'];
-                          
-                          // Initialize choices if needed
-                          if ((step.type == 'Four Choice' || step.type == 'Listening Choice') && 
-                              step.choices.length < 4) {
-                            step.choices.addAll(
-                              List.generate(4 - step.choices.length, (_) => ''),
-                            );
-                          }
-                        });
-                        Navigator.pop(context);
-                      },
-                      borderRadius: BorderRadius.circular(15),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isCurrent
-                              ? AppTheme.primaryColor.withValues(alpha: 0.1)
-                              : theme.cardColor,
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: isCurrent
-                                ? AppTheme.primaryColor
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: isCurrent
-                                    ? AppTheme.primaryColor
-                                    : theme.dividerColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                type['icon'],
-                                color: isCurrent
-                                    ? Colors.white
-                                    : theme.iconTheme.color?.withValues(
-                                        alpha: 0.6,
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    type['name'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: isCurrent
-                                          ? FontWeight.bold
-                                          : FontWeight.w600,
-                                      color: isCurrent
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.textColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    type['desc'],
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isCurrent
-                                          ? AppTheme.primaryColor.withValues(
-                                              alpha: 0.7,
-                                            )
-                                          : Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (isCurrent)
-                              Icon(
-                                Icons.check_circle_rounded,
-                                color: AppTheme.primaryColor,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final activeStep = _lessonSteps[_activeStepIndex];
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: ThaiAppBar(
@@ -867,7 +441,7 @@ class _CreateScreenState extends State<CreateScreen> {
                     alignment: Alignment.center,
                     children: [
                       Icon(
-                        _getIconForType(_lessonSteps[_activeStepIndex].type),
+                        activeStep.questionType.icon,
                         size: 20,
                         color: theme.colorScheme.primary,
                       ),
@@ -947,339 +521,225 @@ class _CreateScreenState extends State<CreateScreen> {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: theme.brightness == Brightness.light
-                              ? 0.05
-                              : 0.2,
-                        ),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 15,
-                        offset: const Offset(0, 8),
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(28),
-                    child: KeyedSubtree(
-                      key: ValueKey(_lessonSteps[index].id),
-                      child: _buildTestPreviewForIndex(index),
-                    ),
+                    child: _buildTestPreviewForIndex(index),
                   ),
                 );
               },
             ),
           ),
-        ],
-      ),
-      bottomNavigationBar: _buildStepBar(),
-    );
-  }
-
-  Widget _buildStepBar() {
-    final theme = Theme.of(context);
-    return Container(
-      height: 95,
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(
-              alpha: theme.brightness == Brightness.light ? 0.05 : 0.2,
-            ),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          children: [
-            Expanded(
-              child: ReorderableListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _lessonSteps.length,
-                padding: const EdgeInsets.fromLTRB(8, 12, 16, 12),
-                proxyDecorator: (child, index, animation) {
-                  return AnimatedBuilder(
-                    animation: animation,
-                    builder: (context, child) {
-                      return Material(
-                        elevation: 0,
-                        color: Colors.transparent,
-                        child: child,
-                      );
-                    },
-                    child: child,
-                  );
-                },
-                onReorder: (oldIndex, newIndex) {
-                  setState(() {
-                    if (oldIndex < newIndex) {
-                      newIndex -= 1;
-                    }
-                    final item = _lessonSteps.removeAt(oldIndex);
-                    _lessonSteps.insert(newIndex, item);
-
-                    if (_activeStepIndex == oldIndex) {
-                      _activeStepIndex = newIndex;
-                    } else if (oldIndex < _activeStepIndex &&
-                        newIndex >= _activeStepIndex) {
-                      _activeStepIndex -= 1;
-                    } else if (oldIndex > _activeStepIndex &&
-                        newIndex <= _activeStepIndex) {
-                      _activeStepIndex += 1;
-                    }
-                    _pageController.jumpToPage(_activeStepIndex);
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final isActive = index == _activeStepIndex;
-                  return _buildStepItem(index, isActive);
-                },
-              ),
-            ),
-            const VerticalDivider(width: 20, indent: 15, endIndent: 15),
-            _buildReorderButton(),
-            _buildAddButton(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReorderButton() {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: _showReorderSheet,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 50,
-        height: 50,
-        margin: const EdgeInsets.only(right: 8),
-        decoration: BoxDecoration(
-          color: theme.dividerColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-        ),
-        child: Icon(
-          Icons.reorder_rounded,
-          color: theme.iconTheme.color?.withValues(alpha: 0.7),
-          size: 24,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepItem(int index, bool isActive) {
-    final theme = Theme.of(context);
-    final step = _lessonSteps[index];
-    
-    return GestureDetector(
-      key: ValueKey(step.id),
-      onTap: () {
-        setState(() => _activeStepIndex = index);
-        _pageController.animateToPage(
-          index,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              width: 60,
-              height: 65,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? theme.colorScheme.primary
-                    : theme.scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isActive
-                      ? theme.colorScheme.primary
-                      : theme.dividerColor.withValues(alpha: 0.2),
-                  width: 1.5,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor,
+              border: Border(
+                top: BorderSide(
+                  color: theme.dividerColor.withValues(alpha: 0.1),
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            child: SafeArea(
+              child: Row(
                 children: [
-                  Text(
-                    '${index + 1}',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: isActive ? Colors.white : theme.disabledColor,
+                  Container(
+                    height: 52,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.editModeColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(
+                        color: AppTheme.editModeColor.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "${_activeStepIndex + 1}/${_lessonSteps.length}",
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.editModeColor,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.tune_rounded,
+                            size: 18,
+                            color: AppTheme.editModeColor,
+                          ),
+                          onPressed: _showReorderSheet,
+                          tooltip: 'Reorder Steps',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 32,
+                            minHeight: 32,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Icon(
-                    _getIconForType(_lessonSteps[index].type),
-                    size: 20,
-                    color: isActive
-                        ? Colors.white
-                        : theme.iconTheme.color?.withValues(alpha: 0.6),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _lessonSteps.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(width: 6),
+                        itemBuilder: (context, index) {
+                          final isSelected = index == _activeStepIndex;
+                          final step = _lessonSteps[index];
+                          return InkWell(
+                            onTap: () {
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 44,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : theme.cardColor,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? AppTheme.primaryColor
+                                      : theme.dividerColor
+                                          .withValues(alpha: 0.1),
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    step.questionType.icon,
+                                    size: 16,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : theme.iconTheme.color
+                                            ?.withValues(alpha: 0.6),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "${index + 1}",
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : theme.textTheme.bodyMedium?.color
+                                              ?.withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    icon: Container(
+                      height: 52,
+                      width: 52,
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(26),
+                        border: Border.all(
+                          color: theme.dividerColor.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: const Icon(Icons.more_vert_rounded),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'duplicate') {
+                        _duplicateStep(_activeStepIndex);
+                      } else if (value == 'delete') {
+                        _removeStep(_activeStepIndex);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'duplicate',
+                        child: Row(
+                          children: [
+                            Icon(Icons.copy_rounded, size: 20),
+                            SizedBox(width: 12),
+                            Text('Duplicate Step'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.delete_outline_rounded,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Delete Step',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: _addStep,
+                    borderRadius: BorderRadius.circular(26),
+                    child: Container(
+                      height: 52,
+                      width: 52,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                AppTheme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            Positioned(
-              top: -6,
-              left: -6,
-              child: GestureDetector(
-                onTap: () => _showStepActions(index),
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade700,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.cardColor, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.more_horiz_rounded,
-                    color: Colors.white,
-                    size: 10,
-                  ),
-                ),
-              ),
-            ),
-            if (_lessonSteps.length > 1)
-              Positioned(
-                top: -6,
-                right: -6,
-                child: GestureDetector(
-                  onTap: () => _removeStep(index),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: theme.cardColor, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: 8,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddButton() {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: _addStep,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 50,
-        height: 50,
-        margin: const EdgeInsets.only(right: 8),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.primary.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: theme.colorScheme.primary, width: 1.5),
-        ),
-        child: Icon(
-          Icons.add_rounded,
-          color: theme.colorScheme.primary,
-          size: 24,
-        ),
-      ),
-    );
-  }
-
-  void _showStepActions(int index) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "Step ${index + 1} Actions",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 10),
-              ListTile(
-                leading: const Icon(Icons.copy_rounded, color: Colors.blue),
-                title: const Text("Duplicate Step"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _duplicateStep(index);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.reorder_rounded,
-                  color: Colors.orange,
-                ),
-                title: const Text("Reorder All Steps"),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showReorderSheet();
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.red,
-                ),
-                title: const Text(
-                  "Delete Step",
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _removeStep(index);
-                },
-              ),
-            ],
           ),
-        );
-      },
+        ],
+      ),
     );
-  }
-
-  IconData _getIconForType(String type) {
-    try {
-      return _questionTypeOptions.firstWhere(
-        (e) => e['name'] == type || (type == 'Culture Note' && e['name'] == 'Info Note'),
-      )['icon'];
-    } catch (_) {
-      return Icons.help_outline;
-    }
   }
 }

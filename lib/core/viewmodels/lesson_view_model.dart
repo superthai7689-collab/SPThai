@@ -8,7 +8,7 @@ enum LessonType {
   multipleChoice,
   listening,
   speaking,
-  completeSentense,
+  completeSentence,
   meaning,
   sentenceOrder,
   vowelFill,
@@ -55,7 +55,7 @@ class LessonViewModel extends ChangeNotifier {
   int get sessionCorrectCount => _sessionCorrectCount;
   List<LessonStep> get failedSteps => _failedSteps;
 
-  LessonPlan? get currentPlan => _currentPlan; // [TEMPORARY] for admin migration
+  LessonPlan? get currentPlan => _currentPlan;
 
   LessonViewModel({this.lessonId, required this.category}) {
     _generateSteps();
@@ -110,11 +110,13 @@ class LessonViewModel extends ChangeNotifier {
       case "Speaking":
       case "speaking":
         return LessonType.speaking;
+      case "Complete Sentence":
+      case "completeSentence":
       case "Complete Sentense":
       case "completeSentense":
       case "Fill Blank":
       case "fillBlank":
-        return LessonType.completeSentense;
+        return LessonType.completeSentence;
       case "Meaning":
       case "meaning":
       case "English Meaning":
@@ -149,7 +151,6 @@ class LessonViewModel extends ChangeNotifier {
     if (_currentIndex < _steps.length) {
       final currentStep = _steps[_currentIndex];
 
-      // [TEMPORARY] Auto-Migration logic
       if (!_hasAutoMigrated &&
           _currentPlan != null &&
           (currentStep.rawData?.wasConverted ?? false)) {

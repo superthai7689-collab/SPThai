@@ -11,7 +11,7 @@ class ThemeService extends ChangeNotifier {
   static const String _themeKey = 'is_dark_mode';
   static const String _colorKey = 'primary_color_value';
 
-  Color _primaryColor = const Color(0xFFFF9800); // Default orange
+  Color _primaryColor = const Color(0xFFFF9800);
   Color get primaryColor => _primaryColor;
 
   ThemeService._internal() {

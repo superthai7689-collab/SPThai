@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:superthai/core/models/models.dart';
-import 'package:superthai/core/services/auth_service.dart'; // [TEMPORARY]
-import 'package:superthai/core/services/temp_migration_service.dart'; // [TEMPORARY]
+import 'package:superthai/core/services/auth_service.dart';
+import 'package:superthai/core/services/temp_migration_service.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
-import 'package:superthai/question_type/controllers/complete_sentense_controller.dart';
+import 'package:superthai/question_type/controllers/complete_sentence_controller.dart';
 
-class CompleteSentenseTakePage extends StatefulWidget {
+class CompleteSentenceTakePage extends StatefulWidget {
   final ExampleSentence sentence;
   final bool showAppBar;
   final int currentIndex;
   final int totalSteps;
-  final LessonPlan? plan; // [TEMPORARY]
-  final int stepIndex; // [TEMPORARY]
+  final LessonPlan? plan;
+  final int stepIndex;
 
-  const CompleteSentenseTakePage({
+  const CompleteSentenceTakePage({
     super.key,
     required this.sentence,
     this.showAppBar = true,
@@ -25,17 +25,17 @@ class CompleteSentenseTakePage extends StatefulWidget {
   });
 
   @override
-  State<CompleteSentenseTakePage> createState() => _CompleteSentenseTakePageState();
+  State<CompleteSentenceTakePage> createState() => _CompleteSentenceTakePageState();
 }
 
-class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
-  late final CompleteSentenseController _controller;
-  bool _isMigrating = false; // [TEMPORARY]
+class _CompleteSentenceTakePageState extends State<CompleteSentenceTakePage> {
+  late final CompleteSentenceController _controller;
+  bool _isMigrating = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = CompleteSentenseController(widget.sentence);
+    _controller = CompleteSentenceController(widget.sentence);
   }
 
   @override
@@ -44,7 +44,6 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
     super.dispose();
   }
 
-  // [TEMPORARY] migration action
   void _handleMarkAsMeaning() async {
     if (widget.plan == null || widget.stepIndex == -1) return;
     
@@ -56,7 +55,6 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Migrated to Meaning type!")),
         );
-        // Dispatch success to move to next step automatically or just refresh
         StepResultNotification(true).dispatch(context);
       }
     } catch (e) {
@@ -76,7 +74,7 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
       listenable: _controller,
       builder: (context, _) {
         final theme = Theme.of(context);
-        final isAdmin = AuthService.instance.isAdmin; // [TEMPORARY]
+        final isAdmin = AuthService.instance.isAdmin;
 
         Widget body = SingleChildScrollView(
           child: Padding(
@@ -90,7 +88,7 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
                 ),
                 const SizedBox(height: 32),
                 ThaiQuestionCard(
-                  header: "COMPLETE THE SENTENSE",
+                  header: "COMPLETE THE SENTENCE",
                   padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
                   child: Text(
                     widget.sentence.sentence,
@@ -153,7 +151,6 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
                 else
                   _buildFeedbackArea(),
 
-                // [TEMPORARY] Admin Migration Button
                 if (isAdmin && !_controller.checked) ...[
                   const SizedBox(height: 16),
                   TextButton.icon(
@@ -178,7 +175,7 @@ class _CompleteSentenseTakePageState extends State<CompleteSentenseTakePage> {
 
         return Scaffold(
           appBar: widget.showAppBar
-              ? const ThaiAppBar(title: "Complete Sentense")
+              ? const ThaiAppBar(title: "Complete Sentence")
               : null,
           body: body,
         );

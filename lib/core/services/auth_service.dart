@@ -1,7 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:superthai/core/enums/user_role.dart';
 
 class AuthService extends ChangeNotifier {
   static final AuthService _instance = AuthService._internal();
@@ -11,9 +12,10 @@ class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  String? _role;
-  String? get role => _role;
-  bool get isAdmin => _role == 'admin';
+  UserRole _userRole = UserRole.member;
+  UserRole get userRole => _userRole;
+  String? get role => _userRole.value;
+  bool get isAdmin => _userRole.isAdmin;
 
   StreamSubscription? _roleSubscription;
 
@@ -23,21 +25,22 @@ class AuthService extends ChangeNotifier {
       if (user != null) {
         _listenToUserRole(user.uid);
       } else {
-        _role = null;
+        _userRole = UserRole.member;
         notifyListeners();
       }
     });
   }
 
   void _listenToUserRole(String uid) {
-    _roleSubscription = _db.collection('users').doc(uid).snapshots().listen((doc) {
-      String newRole = 'member';
+    _roleSubscription =
+        _db.collection('users').doc(uid).snapshots().listen((doc) {
+      UserRole newRole = UserRole.member;
       if (doc.exists) {
-        newRole = doc.data()?['role'] ?? 'member';
+        newRole = UserRole.fromString(doc.data()?['role']);
       }
-      
-      if (_role != newRole) {
-        _role = newRole;
+
+      if (_userRole != newRole) {
+        _userRole = newRole;
         notifyListeners();
       }
     });
@@ -51,14 +54,14 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signup(String email, String password) async {
-    UserCredential cred = await _auth.createUserWithEmailAndPassword(
+    final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
     if (cred.user != null) {
       await _db.collection('users').doc(cred.user!.uid).set({
         'email': email,
-        'role': 'member',
+        'role': UserRole.member.value,
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
@@ -80,7 +83,7 @@ class AuthService extends ChangeNotifier {
     }
 
     final userDoc = query.docs.first;
-    await userDoc.reference.update({'role': 'admin'});
+    await userDoc.reference.update({'role': UserRole.admin.value});
   }
 
   Future<void> updateProfileName(String name) async {
@@ -103,7 +106,7 @@ class AuthService extends ChangeNotifier {
     final user = _auth.currentUser;
     if (user == null || user.email == null) return;
 
-    AuthCredential credential = EmailAuthProvider.credential(
+    final credential = EmailAuthProvider.credential(
       email: user.email!,
       password: oldPassword,
     );

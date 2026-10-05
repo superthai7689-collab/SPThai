@@ -196,7 +196,6 @@ class _LessonMapState extends State<_LessonMap> {
     if (notification is ScrollUpdateNotification) {
       final metrics = notification.metrics;
       if (metrics.maxScrollExtent > 0) {
-        // Only update the notifier, which triggers a tiny rebuild of just the thumb
         _scrollProgress.value = (metrics.pixels / metrics.maxScrollExtent).clamp(0.0, 1.0);
       }
     }
@@ -552,7 +551,6 @@ class _LessonMapState extends State<_LessonMap> {
                   },
                 ),
               ),
-              // Custom Scrollbar Track
               Positioned(
                 top: 10,
                 bottom: 10,
@@ -565,7 +563,6 @@ class _LessonMapState extends State<_LessonMap> {
                   ),
                 ),
               ),
-              // Custom Scrollbar Thumb (Optimized with ValueNotifier)
               ValueListenableBuilder<double>(
                 valueListenable: _scrollProgress,
                 builder: (context, progress, _) {

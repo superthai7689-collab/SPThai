@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
-import 'package:superthai/core/services/temp_migration_service.dart'; // [TEMPORARY]
+import 'package:superthai/core/enums/question_type.dart';
+import 'package:superthai/core/services/temp_migration_service.dart';
 
 class ExampleSentence {
   final String sentence;
@@ -155,6 +156,9 @@ class LessonStepData {
   })  : id = id ?? const Uuid().v4(),
         choices = choices ?? [];
 
+  QuestionType get questionType => QuestionType.fromString(type);
+  set questionType(QuestionType qType) => type = qType.typeKey;
+
   Map<String, dynamic> toMap() => {
         'id': id,
         'type': type,
@@ -170,7 +174,6 @@ class LessonStepData {
 
   factory LessonStepData.fromMap(Map<String, dynamic> map) {
     bool migrated = false;
-    // [TEMPORARY] Legacy Migration logic
     String type = TempMigrationService.normalizeType(
       map['type'] ?? 'flashcard',
       (val) => migrated = val,

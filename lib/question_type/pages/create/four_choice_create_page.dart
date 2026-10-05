@@ -42,7 +42,6 @@ class _FourChoiceCreatePageState extends State<FourChoiceCreatePage> {
     );
     _questionController = TextEditingController(text: widget.word.thai);
 
-    // Ensure we have exactly 4 choice controllers
     for (int i = 0; i < 4; i++) {
       String initialText = "";
       if (i < widget.choices.length) {

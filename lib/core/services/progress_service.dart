@@ -41,7 +41,6 @@ class ProgressService extends ChangeNotifier {
         DataService.instance.migrateFavorites(user.uid);
         _loadProgressFromFirestore();
       } else if (AuthService.instance.currentUser == null) {
-        // Only clear if the user is truly logged out
         _completedStepIndices.clear();
         _loadLocalProgress();
         notifyListeners();

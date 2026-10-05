@@ -139,7 +139,7 @@ class SettingsScreen extends StatelessWidget {
                                 child: ListView(
                                   scrollDirection: Axis.horizontal,
                                   children: [
-                                    _buildColorOption(context, theme, const Color(0xFFFF9800)), // Orange
+                                    _buildColorOption(context, theme, const Color(0xFFFF9800)),
                                     _buildColorOption(context, theme, Colors.blue),
                                     _buildColorOption(context, theme, Colors.teal),
                                     _buildColorOption(context, theme, Colors.pink),

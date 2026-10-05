@@ -185,7 +185,6 @@ class AppTheme {
     );
   }
 
-  // Backward compatibility
   static Color get primaryColor => ThemeService.instance.primaryColor;
   static ThemeData get lightTheme => getLightTheme(ThemeService.instance.primaryColor);
   static ThemeData get darkTheme => getDarkTheme(ThemeService.instance.primaryColor);

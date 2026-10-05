@@ -63,7 +63,6 @@ class _ConversationTakePageState extends State<ConversationTakePage> {
       });
       _speak(widget.messages[_visibleCount - 1].text);
       
-      // Auto scroll to bottom
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(

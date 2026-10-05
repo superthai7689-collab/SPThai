@@ -12,15 +12,25 @@ import 'package:superthai/ui/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: authService),
-        ChangeNotifierProvider.value(value: progressService),
-        ChangeNotifierProvider.value(value: themeService),
-        ChangeNotifierProvider.value(value: dataService),
+        ChangeNotifierProvider<AuthService>(
+          create: (_) => AuthService.instance,
+        ),
+        ChangeNotifierProvider<ProgressService>(
+          create: (_) => ProgressService.instance,
+        ),
+        ChangeNotifierProvider<ThemeService>(
+          create: (_) => ThemeService.instance,
+        ),
+        ChangeNotifierProvider<DataService>(
+          create: (_) => DataService.instance,
+        ),
       ],
       child: const SuperThaiApp(),
     ),
@@ -41,10 +51,8 @@ class SuperThaiApp extends StatelessWidget {
           darkTheme: AppTheme.getDarkTheme(theme.primaryColor),
           themeMode: theme.themeMode,
           home: StreamBuilder<User?>(
-            stream: authService.userChanges,
+            stream: context.read<AuthService>().userChanges,
             builder: (context, snapshot) {
-              // ไม่ต้องดัก waiting แบบสนิท เพื่อให้แอปขึ้นหน้าหลักได้ทันที
-              // Snapshot จะอัปเดตเองเมื่อ Firebase พร้อม
               return const MainContainer();
             },
           ),

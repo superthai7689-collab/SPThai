@@ -3,12 +3,12 @@ import 'package:superthai/core/models/models.dart';
 import 'package:superthai/ui/theme/app_theme.dart';
 import 'package:superthai/ui/widgets/shared_widgets.dart';
 
-class CompleteSentenseCreatePage extends StatefulWidget {
+class CompleteSentenceCreatePage extends StatefulWidget {
   final ExampleSentence sentence;
   final bool showAppBar;
   final Function(String field, String value)? onEdit;
 
-  const CompleteSentenseCreatePage({
+  const CompleteSentenceCreatePage({
     super.key,
     required this.sentence,
     this.showAppBar = true,
@@ -16,10 +16,10 @@ class CompleteSentenseCreatePage extends StatefulWidget {
   });
 
   @override
-  State<CompleteSentenseCreatePage> createState() => _CompleteSentenseCreatePageState();
+  State<CompleteSentenceCreatePage> createState() => _CompleteSentenceCreatePageState();
 }
 
-class _CompleteSentenseCreatePageState extends State<CompleteSentenseCreatePage> {
+class _CompleteSentenceCreatePageState extends State<CompleteSentenceCreatePage> {
   late TextEditingController _questionController;
   late TextEditingController _answerController;
 
@@ -31,7 +31,7 @@ class _CompleteSentenseCreatePageState extends State<CompleteSentenseCreatePage>
   }
 
   @override
-  void didUpdateWidget(CompleteSentenseCreatePage oldWidget) {
+  void didUpdateWidget(CompleteSentenceCreatePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.sentence.sentence != _questionController.text) {
       _questionController.text = widget.sentence.sentence;
@@ -54,7 +54,7 @@ class _CompleteSentenseCreatePageState extends State<CompleteSentenseCreatePage>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: widget.showAppBar
-          ? const ThaiAppBar(title: "⚙️ Complete Sentense Settings")
+          ? const ThaiAppBar(title: "⚙️ Complete Sentence Settings")
           : null,
       body: SingleChildScrollView(
         child: Column(

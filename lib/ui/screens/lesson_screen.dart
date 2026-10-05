@@ -3,7 +3,7 @@ import 'package:superthai/core/viewmodels/lesson_view_model.dart';
 import 'package:superthai/question_type/pages/take/listening_take_page.dart';
 import 'package:superthai/question_type/pages/take/listening_choice_take_page.dart';
 import 'package:superthai/question_type/pages/take/speaking_take_page.dart';
-import 'package:superthai/question_type/pages/take/complete_sentense_take_page.dart';
+import 'package:superthai/question_type/pages/take/complete_sentence_take_page.dart';
 import 'package:superthai/question_type/pages/take/meaning_take_page.dart';
 import 'package:superthai/question_type/pages/take/four_choice_take_page.dart';
 import 'package:superthai/question_type/pages/take/sentence_order_take_page.dart';
@@ -112,14 +112,14 @@ class _LessonScreenState extends State<LessonScreen> {
           totalSteps: total,
           isActive: isActive,
         );
-      case LessonType.completeSentense:
-        return CompleteSentenseTakePage(
+      case LessonType.completeSentence:
+        return CompleteSentenceTakePage(
           sentence: step.sentence!,
           showAppBar: false,
           currentIndex: index,
           totalSteps: total,
-          plan: _viewModel.currentPlan, // [TEMPORARY] for migration
-          stepIndex: step.originalIndex, // [TEMPORARY] for migration
+          plan: _viewModel.currentPlan,
+          stepIndex: step.originalIndex,
         );
       case LessonType.meaning:
         return MeaningTakePage(
@@ -224,7 +224,6 @@ class _LessonScreenState extends State<LessonScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Back Button
                 Opacity(
                   opacity: _viewModel.currentIndex > 0 ? 1.0 : 0.0,
                   child: IgnorePointer(
@@ -237,7 +236,6 @@ class _LessonScreenState extends State<LessonScreen> {
                   ),
                 ),
 
-                // Close Button
                 _buildBottomNavButton(
                   icon: Icons.close_rounded,
                   label: "EXIT",
@@ -245,7 +243,6 @@ class _LessonScreenState extends State<LessonScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
 
-                // Next/Skip Button
                 Opacity(
                   opacity: _viewModel.currentIndex < _viewModel.steps.length - 1 ? 1.0 : 0.0,
                   child: IgnorePointer(
